@@ -1,0 +1,73 @@
+# ==========================================
+# Qt / QML / Qt Creator Specifics
+# ==========================================
+# Qt Creator のプロジェクト設定ファイル (ユーザー個別設定)
+*.user
+*.user.*
+
+# Qt Creator のコードモデル・キャッシュ
+.qtcreator
+.qtc_clangd/
+.qt-license
+
+# ビルドディレクトリ (デフォルトのシャドウビルドパターン)
+build-*/
+Build-*/
+build/
+
+# CMake の出力・キャッシュ (Qt Creator/VS Code 共通)
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+.cmake/
+
+# qmake の出力 (古いプロジェクト用)
+.qmake.stash
+object_script.*
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.moc
+moc_*.cpp
+.qmlls.ini
+qrc_*.cpp
+ui_*.h
+
+# ==========================================
+# VS Code Specifics
+# ==========================================
+.vscode/
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# ==========================================
+# General Operating Systems
+# ==========================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+
