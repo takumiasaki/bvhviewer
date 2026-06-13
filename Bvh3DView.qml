@@ -7,6 +7,12 @@ Item {
     id: root
     property SceneManager sceneManager
 
+    // Built-in #Sphere / #Cylinder meshes are 100 units along each axis.
+    readonly property real builtinMeshSize: 100
+    readonly property real jointDiameter: 4
+    readonly property real endSiteDiameter: 3
+    readonly property real boneDiameter: 2
+
     View3D {
         id: view3d
         anchors.fill: parent
@@ -63,28 +69,28 @@ Item {
 
             Repeater3D {
                 id: skeletonRepeater
-                model: sceneManager ? sceneManager.count : 0
+                model: sceneManager
 
                 Node {
                     required property int index
-                    property BvhSkeletonItem skeleton: sceneManager ? sceneManager.skeletonAt(index) : null
+                    required property BvhSkeletonItem skeleton
 
-                    visible: skeleton ? skeleton.visible : false
-                    position: skeleton ? skeleton.sceneOffset : Qt.vector3d(0, 0, 0)
+                    visible: skeleton.visible
+                    position: skeleton.sceneOffset
 
                     Repeater3D {
-                        model: skeleton ? skeleton.jointModel : null
+                        model: skeleton.jointModel
 
                         Model {
-                            required property vector3d position
-                            required property bool isEndSite
-
                             source: "#Sphere"
-                            position: position
-                            scale: Qt.vector3d(isEndSite ? 0.3 : 0.5, isEndSite ? 0.3 : 0.5, isEndSite ? 0.3 : 0.5)
+                            position: model.position
+                            scale: Qt.vector3d(
+                                (model.isEndSite ? endSiteDiameter : jointDiameter) / builtinMeshSize,
+                                (model.isEndSite ? endSiteDiameter : jointDiameter) / builtinMeshSize,
+                                (model.isEndSite ? endSiteDiameter : jointDiameter) / builtinMeshSize)
                             materials: [
                                 PrincipledMaterial {
-                                    baseColor: skeleton ? skeleton.color : "#ffffff"
+                                    baseColor: skeleton.color
                                     roughness: 0.3
                                     metalness: 0.1
                                 }
@@ -93,20 +99,19 @@ Item {
                     }
 
                     Repeater3D {
-                        model: skeleton ? skeleton.boneModel : null
+                        model: skeleton.boneModel
 
                         Model {
-                            required property vector3d position
-                            required property quaternion rotation
-                            required property real length
-
                             source: "#Cylinder"
-                            position: position
-                            rotation: rotation
-                            scale: Qt.vector3d(0.2, length > 0 ? length : 0.01, 0.2)
+                            position: model.position
+                            rotation: model.rotation
+                            scale: Qt.vector3d(
+                                boneDiameter / builtinMeshSize,
+                                (model.length > 0 ? model.length : 0.01) / builtinMeshSize,
+                                boneDiameter / builtinMeshSize)
                             materials: [
                                 PrincipledMaterial {
-                                    baseColor: skeleton ? skeleton.color : "#ffffff"
+                                    baseColor: skeleton.color
                                     roughness: 0.4
                                     metalness: 0.1
                                 }

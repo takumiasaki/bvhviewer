@@ -108,7 +108,7 @@ void Bvh3DModel::setFrame(int frameIndex)
         emit currentFrameChanged();
     }
 
-    updatePoseFromBvhFile();
+    updatePoseFromBvhFile(true);
 }
 
 void Bvh3DModel::setPoseAtTime(double seconds)
@@ -133,7 +133,7 @@ void Bvh3DModel::setPoseAtTime(double seconds)
         emit currentFrameChanged();
     }
 
-    updatePoseFromBvhFile();
+    updatePoseFromBvhFile(false);
 }
 
 void Bvh3DModel::buildSkeletonMetadata()
@@ -197,7 +197,7 @@ void Bvh3DModel::buildSkeletonMetadata()
     m_boneModel->setBones(&m_bones);
 }
 
-void Bvh3DModel::updatePoseFromBvhFile()
+void Bvh3DModel::updatePoseFromBvhFile(bool immediateNotify)
 {
     if (!isValid()) {
         return;
@@ -229,9 +229,28 @@ void Bvh3DModel::updatePoseFromBvhFile()
         bone.length = transform.length;
     }
 
+    if (immediateNotify) {
+        notifyPoseChanged();
+        return;
+    }
+
+    if (!m_poseRefreshScheduled) {
+        m_poseRefreshScheduled = true;
+        QMetaObject::invokeMethod(this, &Bvh3DModel::flushPoseRefresh, Qt::QueuedConnection);
+    }
+}
+
+void Bvh3DModel::notifyPoseChanged()
+{
+    m_poseRefreshScheduled = false;
     m_jointModel->refreshAll();
     m_boneModel->refreshAll();
     emit poseUpdated();
+}
+
+void Bvh3DModel::flushPoseRefresh()
+{
+    notifyPoseChanged();
 }
 
 void Bvh3DModel::applyInitialPose()
@@ -247,7 +266,7 @@ void Bvh3DModel::applyInitialPose()
 
     m_currentFrame = -1;
     emit currentFrameChanged();
-    updatePoseFromBvhFile();
+    updatePoseFromBvhFile(true);
 }
 
 void Bvh3DModel::reset()

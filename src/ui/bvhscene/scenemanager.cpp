@@ -54,6 +54,8 @@ QVariant SceneManager::data(const QModelIndex& index, int role) const
         return item->displayName();
     case SourceRole:
         return item->source();
+    case SkeletonRole:
+        return QVariant::fromValue(entry.item);
     case ValidRole:
         return item->isValid();
     case FrameCountRole:
@@ -72,6 +74,7 @@ QHash<int, QByteArray> SceneManager::roleNames() const
     return {
         {NameRole, "name"},
         {SourceRole, "source"},
+        {SkeletonRole, "skeleton"},
         {ValidRole, "valid"},
         {FrameCountRole, "frameCount"},
         {CurrentFrameRole, "currentFrame"},
@@ -338,7 +341,6 @@ void SceneManager::connectSkeletonSignals(BvhSkeletonItem* item)
         if (item == activeScene()) {
             syncCurrentFrameFromModels();
         }
-        handleSkeletonUpdated();
     });
 }
 

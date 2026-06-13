@@ -69,7 +69,9 @@ signals:
 
 private:
     void buildSkeletonMetadata();
-    void updatePoseFromBvhFile();
+    void updatePoseFromBvhFile(bool immediateNotify = false);
+    void flushPoseRefresh();
+    void notifyPoseChanged();
     void applyInitialPose();
     void reset();
 
@@ -80,6 +82,7 @@ private:
     BvhBoneListModel* m_boneModel = nullptr;
 
     int m_currentFrame = -1;
+    bool m_poseRefreshScheduled = false;
     bool m_visible = true;
     QColor m_color = Qt::white;
     QString m_displayName;

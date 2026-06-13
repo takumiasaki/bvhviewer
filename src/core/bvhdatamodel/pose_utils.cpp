@@ -2,6 +2,7 @@
 
 #include "bvhfile.h"
 #include "bvhnode.h"
+#include "channel.h"
 
 #include <QtMath>
 #include <algorithm>
@@ -12,6 +13,40 @@ namespace {
 
 constexpr float kMinBoneLength = 1e-4f;
 constexpr float kDirectionEpsilon = 1e-6f;
+
+bool isRotationChannel(Channel::Type type)
+{
+    return type == Channel::Xrotation
+        || type == Channel::Yrotation
+        || type == Channel::Zrotation;
+}
+
+double interpolateChannelValue(Channel::Type type, double v0, double v1, double alpha)
+{
+    if (isRotationChannel(type)) {
+        const double delta = std::fmod(v1 - v0 + 540.0, 360.0) - 180.0;
+        return v0 + delta * alpha;
+    }
+    return v0 + (v1 - v0) * alpha;
+}
+
+QVector<Channel::Type> channelTypesForFile(const BvhFile* bvhFile)
+{
+    const int totalChannels = bvhFile->getTotalChannels();
+    QVector<Channel::Type> types(totalChannels, Channel::Unknown);
+
+    for (BvhNode* node : bvhFile->getAllNodes()) {
+        const int start = node->getChannelStartIndex();
+        const QList<Channel>& channels = node->getChannels();
+        for (int i = 0; i < channels.size(); ++i) {
+            if (start + i < types.size()) {
+                types[start + i] = channels.at(i).type;
+            }
+        }
+    }
+
+    return types;
+}
 
 QVector<double> interpolateFrameData(const BvhFile* bvhFile, double frameReal)
 {
@@ -39,11 +74,14 @@ QVector<double> interpolateFrameData(const BvhFile* bvhFile, double frameReal)
         return frame0;
     }
 
+    const QVector<Channel::Type> channelTypes = channelTypesForFile(bvhFile);
+
     QVector<double> blended(totalChannels);
     for (int i = 0; i < totalChannels; ++i) {
         const double v0 = i < frame0.size() ? frame0[i] : 0.0;
         const double v1 = i < frame1.size() ? frame1[i] : v0;
-        blended[i] = v0 + (v1 - v0) * alpha;
+        const Channel::Type type = i < channelTypes.size() ? channelTypes[i] : Channel::Unknown;
+        blended[i] = interpolateChannelValue(type, v0, v1, alpha);
     }
     return blended;
 }

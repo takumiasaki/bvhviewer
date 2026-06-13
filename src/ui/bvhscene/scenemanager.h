@@ -32,6 +32,7 @@ public:
     enum SceneRoles {
         NameRole = Qt::UserRole + 1,
         SourceRole,
+        SkeletonRole,
         ValidRole,
         FrameCountRole,
         CurrentFrameRole,
