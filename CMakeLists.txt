@@ -23,6 +23,8 @@ qt_add_qml_module(app_bvhviewer
         Main.qml
         SideBar.qml
         Bvh3DView.qml
+    DEPENDENCIES
+        TARGET lib_ui_bvhscene
 )
 
 set_target_properties(app_bvhviewer PROPERTIES
@@ -35,7 +37,9 @@ set_target_properties(app_bvhviewer PROPERTIES
 )
 
 target_link_libraries(app_bvhviewer PRIVATE Qt6::Gui Qt6::Quick Qt6::QuickControls2 Qt6::Quick3D)
-target_link_libraries(app_bvhviewer PRIVATE lib_core_bvhfile lib_core_bvhdatamodel lib_ui_bvhscene)
+target_link_libraries(app_bvhviewer PRIVATE lib_core_bvhfile lib_core_bvhdatamodel lib_ui_bvhsceneplugin)
+
+qt_import_qml_plugins(app_bvhviewer)
 
 # Enable testing
 enable_testing()

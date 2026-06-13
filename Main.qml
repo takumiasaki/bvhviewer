@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Layouts
 
-import BvhViewer 1.0
+import BvhScene
 
 ApplicationWindow {
     id: window
@@ -13,9 +13,7 @@ ApplicationWindow {
     title: qsTr("BVH Viewer")
     color: "#121212"
 
-    // playback controlled by sceneManager.playing
-
-    BvhSceneListModel {
+    SceneManager {
         id: sceneManager
     }
 
@@ -49,70 +47,16 @@ ApplicationWindow {
         anchors.fill: parent
         spacing: 0
 
-        /* Left: sidebar with scene list */
-        Rectangle {
+        SideBar {
             id: sidebar
-            Layout.preferredWidth: 240
             Layout.fillHeight: true
-            color: "#151515"
-            border.color: "#2A2A2A"
+            Layout.preferredWidth: 240
 
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 8
-                spacing: 8
+            sceneModel: sceneManager
 
-                Text {
-                    text: qsTr("Scenes")
-                    color: "white"
-                    font.bold: true
-                }
-
-                ListView {
-                    id: sceneListView
-                    model: sceneManager
-                    clip: true
-                    spacing: 8
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    delegate: Rectangle {
-                        width: parent.width
-                        height: 56
-                        radius: 6
-                        color: index === sceneManager.activeIndex ? "#2D2D2D" : "#171717"
-                        border.color: index === sceneManager.activeIndex ? "#86C0FF" : "#333"
-                        border.width: 1
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: sceneManager.activeIndex = index
-                        }
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.margins: 8
-                            spacing: 8
-
-                            Text {
-                                text: name
-                                color: "white"
-                                elide: Text.ElideRight
-                                verticalAlignment: Text.AlignVCenter
-                                Layout.fillWidth: true
-                            }
-
-                            Button {
-                                text: qsTr("Remove")
-                                onClicked: sceneManager.removeScene(index)
-                                background: Rectangle { color: "#3A3A3A"; radius: 6 }
-                            }
-                        }
-                    }
-                }
-            }
+            onNewModelRequest: fileDialog.open()
         }
 
-        /* Right: main area with canvas and bottom controls */
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -123,15 +67,14 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 color: "#101010"
 
-                BvhViewItem {
-                    id: bvhView
+                Bvh3DView {
                     anchors.fill: parent
                     sceneManager: sceneManager
-                    boneColor: "white"
                 }
             }
 
             Rectangle {
+                id: animationController
                 Layout.fillWidth: true
                 height: 56
                 color: "#1F1F1F"
@@ -163,7 +106,7 @@ ApplicationWindow {
                         font.bold: true
                         onClicked: {
                             sceneManager.animationTime = 0
-                            if (sceneManager.activeScene) sceneManager.activeScene.currentFrame = 0
+                            sceneManager.currentFrame = 0
                         }
                     }
 
@@ -171,16 +114,18 @@ ApplicationWindow {
                         id: frameSlider
                         Layout.preferredWidth: parent.width * 0.6
                         from: 0
-                        to: sceneManager.activeScene ? Math.max(0, sceneManager.activeScene.frameCount - 1) : 0
+                        to: sceneManager.frameCount > 0 ? Math.max(0, sceneManager.frameCount - 1) : 0
                         stepSize: 1
-                        value: sceneManager.activeScene ? sceneManager.activeScene.currentFrame : 0
-                        visible: sceneManager.activeScene && sceneManager.activeScene.frameCount > 0
-                        onMoved: if (sceneManager.activeScene) sceneManager.activeScene.currentFrame = Math.round(value)
+                        value: sceneManager.currentFrame >= 0 ? sceneManager.currentFrame : 0
+                        visible: sceneManager.activeScene && sceneManager.frameCount > 0
+                        onMoved: sceneManager.currentFrame = Math.round(value)
                     }
 
                     Text {
-                        visible: sceneManager.activeScene && sceneManager.activeScene.frameCount > 0
-                        text: sceneManager.activeScene ? qsTr("Frame %1 / %2").arg(sceneManager.activeScene.currentFrame).arg(Math.max(0, sceneManager.activeScene.frameCount - 1)) : ""
+                        visible: sceneManager.activeScene && sceneManager.frameCount > 0
+                        text: sceneManager.activeScene
+                              ? qsTr("Frame %1 / %2").arg(sceneManager.currentFrame).arg(Math.max(0, sceneManager.frameCount - 1))
+                              : ""
                         color: "white"
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -194,7 +139,7 @@ ApplicationWindow {
         target: sceneManager
         property: "animationTime"
         from: 0
-        to: 3600    // 1 hour cycle in seconds
+        to: 3600
         duration: 3600 * 1000
         loops: Animation.Infinite
         running: sceneManager.playing
@@ -212,7 +157,11 @@ ApplicationWindow {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: 14
-            text: sceneManager.activeScene ? (sceneManager.activeScene.errorString !== "" ? sceneManager.activeScene.errorString : qsTr("Loaded %1").arg(sceneManager.activeScene.source.toString())) : qsTr("No BVH loaded. Use File > Open or specify a .bvh file on the command line.")
+            text: sceneManager.lastError !== ""
+                  ? sceneManager.lastError
+                  : (sceneManager.activeScene
+                     ? qsTr("Loaded %1").arg(sceneManager.activeScene.source.toString())
+                     : qsTr("No BVH loaded. Use File > Open or specify a .bvh file on the command line."))
             color: "white"
             elide: Text.ElideRight
             horizontalAlignment: Text.AlignLeft

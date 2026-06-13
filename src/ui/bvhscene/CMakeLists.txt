@@ -1,5 +1,4 @@
-qt_add_library(lib_ui_bvhscene STATIC
-)
+qt_add_library(lib_ui_bvhscene STATIC)
 
 qt_add_qml_module(lib_ui_bvhscene
     URI BvhScene
@@ -9,6 +8,7 @@ qt_add_qml_module(lib_ui_bvhscene
         scenemanager.cpp
         bvhskeletonitem.h
         bvhskeletonitem.cpp
+        bvhscene_foreign_types.h
 )
 
 target_include_directories(lib_ui_bvhscene
