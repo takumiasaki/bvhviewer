@@ -317,7 +317,7 @@ for each node in DFS order {
 ## ヘッダーファイルの構成
 
 ```
-src/core/
+src/core/bvhfile/
   ├── channel.h         // Channel 列挙・クラス
   ├── channel.cpp
   ├── bvhnode.h         // BvhNode クラス

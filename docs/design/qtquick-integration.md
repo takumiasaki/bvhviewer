@@ -3,8 +3,11 @@
 ## 目的
 Qt Quick で BVH ビューアの UI を構築するために、データモデルと表示層を分離する。最初は単一 BVH の骨描画を実装し、将来的な複数 BVH / シーン拡張に備える。
 
+一旦このドキュメントは Obsolete とする。今後、Qt Quick 3D への移行を検討する際に、改めてアーキテクチャ全体を整理する予定。
+以下の記述は無視する。
+
 ## 層構成
-- `BvhFile` (`src/core/bvhfile.h/cpp`)
+- `BvhFile` (`src/core/bvhfile/bvhfile.h/cpp`)
   - BVH のパースとフレーム適用を担当する純粋なデータ層
   - QML に依存しない
 - `BvhSceneModel` (`src/ui/bvhscenemodel.h/cpp`)
