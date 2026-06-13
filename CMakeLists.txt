@@ -10,16 +10,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 qt_add_executable(app_bvhviewer
     main.cpp
-    src/ui/bvhscenemodel.h
-    src/ui/bvhscenemodel.cpp
-    src/ui/bvhscenelistmodel.h
-    src/ui/bvhscenelistmodel.cpp
-    src/ui/bvhviewitem.h
-    src/ui/bvhviewitem.cpp
 )
 
 add_subdirectory(src/core/bvhfile)
 add_subdirectory(src/core/bvhdatamodel)
+add_subdirectory(src/ui/bvhscene)
 
 qt_add_qml_module(app_bvhviewer
     URI BvhViewer
@@ -40,7 +35,7 @@ set_target_properties(app_bvhviewer PROPERTIES
 )
 
 target_link_libraries(app_bvhviewer PRIVATE Qt6::Gui Qt6::Quick Qt6::QuickControls2 Qt6::Quick3D)
-target_link_libraries(app_bvhviewer PRIVATE lib_core_bvhfile)
+target_link_libraries(app_bvhviewer PRIVATE lib_core_bvhfile lib_core_bvhdatamodel lib_ui_bvhscene)
 
 # Enable testing
 enable_testing()
