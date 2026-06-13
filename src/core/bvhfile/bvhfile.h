@@ -20,6 +20,7 @@ public:
 
     // フレーム操作
     void setCurrentFrame(int frameIndex);
+    QVector<double> getFrameData(int frameIndex) const;
     int getFrameCount() const { return motion.getFrameCount(); }
     double getFrameTime() const { return motion.getFrameTime(); }
     double getTotalDuration() const { return motion.getTotalDuration(); }

@@ -319,6 +319,14 @@ void BvhFile::assignChannelIndices()
     }
 }
 
+QVector<double> BvhFile::getFrameData(int frameIndex) const
+{
+    if (frameIndex < 0 || frameIndex >= motion.getFrameCount()) {
+        return {};
+    }
+    return motion.getFrame(frameIndex);
+}
+
 void BvhFile::setCurrentFrame(int frameIndex)
 {
     if (frameIndex < 0 || frameIndex >= motion.getFrameCount()) {

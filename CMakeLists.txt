@@ -19,6 +19,7 @@ qt_add_executable(app_bvhviewer
 )
 
 add_subdirectory(src/core/bvhfile)
+add_subdirectory(src/core/bvhdatamodel)
 
 qt_add_qml_module(app_bvhviewer
     URI BvhViewer
@@ -43,4 +44,4 @@ target_link_libraries(app_bvhviewer PRIVATE lib_core_bvhfile)
 
 # Enable testing
 enable_testing()
-add_subdirectory(tests/auto/core/bvhfile)
+add_subdirectory(tests/auto)
