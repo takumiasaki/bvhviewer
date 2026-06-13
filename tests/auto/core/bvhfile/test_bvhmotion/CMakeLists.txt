@@ -10,11 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(test_bvhmotion
     tst_bvhmotion.cpp
-    ../../../src/core/bvhmotion.h
-    ../../../src/core/bvhmotion.cpp
 )
 
 target_link_libraries(test_bvhmotion PRIVATE Qt6::Test Qt6::Core)
-target_include_directories(test_bvhmotion PRIVATE ../../../src/core)
+target_link_libraries(test_bvhmotion PRIVATE lib_core_bvhfile)
 
 add_test(NAME test_bvhmotion COMMAND test_bvhmotion)

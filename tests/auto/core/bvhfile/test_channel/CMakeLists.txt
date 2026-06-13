@@ -10,11 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(test_channel
     tst_channel.cpp
-    ../../../src/core/channel.h
-    ../../../src/core/channel.cpp
 )
 
 target_link_libraries(test_channel PRIVATE Qt6::Test Qt6::Core)
-target_include_directories(test_channel PRIVATE ../../../src/core)
+target_link_libraries(test_channel PRIVATE lib_core_bvhfile)
 
 add_test(NAME test_channel COMMAND test_channel)

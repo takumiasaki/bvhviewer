@@ -1,7 +1,7 @@
 #include <QtTest/QtTest>
 #include <QVector3D>
 #include <QMatrix4x4>
-#include "../../../src/core/bvhnode.h"
+#include "bvhnode.h"
 
 class TestBvhNode : public QObject {
     Q_OBJECT

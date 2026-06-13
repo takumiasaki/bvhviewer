@@ -3,7 +3,7 @@
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
-#include "../../../src/core/bvhfile.h"
+#include "bvhfile.h"
 
 static void appendDebugLog(const QString& message)
 {

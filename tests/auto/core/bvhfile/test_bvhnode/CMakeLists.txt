@@ -10,13 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(test_bvhnode
     tst_bvhnode.cpp
-    ../../../src/core/channel.h
-    ../../../src/core/channel.cpp
-    ../../../src/core/bvhnode.h
-    ../../../src/core/bvhnode.cpp
 )
 
 target_link_libraries(test_bvhnode PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
-target_include_directories(test_bvhnode PRIVATE ../../../src/core)
+target_link_libraries(test_bvhnode PRIVATE lib_core_bvhfile)
 
 add_test(NAME test_bvhnode COMMAND test_bvhnode)

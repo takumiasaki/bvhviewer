@@ -1,5 +1,5 @@
 #include <QtTest/QtTest>
-#include "../../../src/core/channel.h"
+#include "channel.h"
 
 class TestChannel : public QObject {
     Q_OBJECT

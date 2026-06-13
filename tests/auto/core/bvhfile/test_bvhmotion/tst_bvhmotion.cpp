@@ -1,5 +1,5 @@
 #include <QtTest/QtTest>
-#include "../../../src/core/bvhmotion.h"
+#include "bvhmotion.h"
 
 class TestBvhMotion : public QObject {
     Q_OBJECT
