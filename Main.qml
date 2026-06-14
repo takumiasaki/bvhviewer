@@ -11,7 +11,7 @@ ApplicationWindow {
     width: 960
     height: 640
     title: qsTr("BVH Viewer")
-    color: "#121212"
+    color: palette.window
 
     SceneManager {
         id: sceneManager
@@ -61,11 +61,10 @@ ApplicationWindow {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            Rectangle {
+            Item {
                 id: canvasArea
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                color: "#101010"
 
                 Bvh3DView {
                     anchors.fill: parent
@@ -77,8 +76,8 @@ ApplicationWindow {
                 id: animationController
                 Layout.fillWidth: true
                 height: 56
-                color: "#1F1F1F"
-                border.color: "#2A2A2A"
+                color: palette.base
+                border.color: palette.mid
                 border.width: 1
 
                 RowLayout {
@@ -92,8 +91,6 @@ ApplicationWindow {
                         text: sceneManager.playing ? qsTr("Pause") : qsTr("Play")
                         enabled: sceneManager.activeScene && sceneManager.activeScene.frameCount > 1
                         visible: sceneManager.activeScene && sceneManager.activeScene.valid
-                        background: Rectangle { color: "#2D2D2D"; radius: 8 }
-                        font.bold: true
                         onClicked: sceneManager.toggle()
                     }
 
@@ -102,8 +99,6 @@ ApplicationWindow {
                         text: qsTr("Reset")
                         enabled: sceneManager.activeScene && sceneManager.activeScene.valid && !sceneManager.playing
                         visible: sceneManager.activeScene && sceneManager.activeScene.valid
-                        background: Rectangle { color: "#2D2D2D"; radius: 8 }
-                        font.bold: true
                         onClicked: {
                             sceneManager.animationTime = 0
                             sceneManager.currentFrame = 0
@@ -121,12 +116,11 @@ ApplicationWindow {
                         onMoved: sceneManager.currentFrame = Math.round(value)
                     }
 
-                    Text {
+                    Label {
                         visible: sceneManager.activeScene && sceneManager.frameCount > 0
                         text: sceneManager.activeScene
                               ? qsTr("Frame %1 / %2").arg(sceneManager.currentFrame).arg(Math.max(0, sceneManager.frameCount - 1))
                               : ""
-                        color: "white"
                         verticalAlignment: Text.AlignVCenter
                     }
                 }
@@ -149,11 +143,11 @@ ApplicationWindow {
         id: statusBar
         Layout.fillWidth: true
         height: 30
-        color: "#121212"
-        border.color: "#2A2A2A"
+        color: palette.window
+        border.color: palette.mid
         border.width: 1
 
-        Text {
+        Label {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: 14
@@ -162,7 +156,7 @@ ApplicationWindow {
                   : (sceneManager.activeScene
                      ? qsTr("Loaded %1").arg(sceneManager.activeScene.source.toString())
                      : qsTr("No BVH loaded. Use File > Open or specify a .bvh file on the command line."))
-            color: "white"
+            color: sceneManager.lastError !== "" ? SemanticColors.error : palette.windowText
             elide: Text.ElideRight
             horizontalAlignment: Text.AlignLeft
             verticalAlignment: Text.AlignVCenter

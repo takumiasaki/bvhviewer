@@ -60,6 +60,7 @@ MVVM パターンに近い構成とし、データフローは「C++ Backend (Mo
 ### UI との連携
 *   構造木 (`TreeView`) は、「BVH File Model」から構築された静的な親子関係リストを使用する（アニメーションデータとは分離）。
 *   表示・非表示の設定は BVH　オブジェクトの単位で管理し、QML から切り替え可能にする。
+*   2D UI の見た目（Controls スタイル・色）は [ui-styling.md](./ui-styling.md) に従う。3D ビュー内の描画色は Palette 方針の対象外とする。
 
 ### QML へ提供するフラットなデータ構造
 QML側での幾何学計算を一切排除するため、C++（3D Data Model）は以下の **2つの独立したフラットなリスト（QAbstractListModel）** を提供する。

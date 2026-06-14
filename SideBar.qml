@@ -7,8 +7,8 @@ import BvhScene 1.0
 
 Rectangle {
     id: sidebar
-    color: "#151515"
-    border.color: "#2A2A2A"
+    color: palette.window
+    border.color: palette.mid
 
     required property SceneManager sceneModel
 
@@ -19,9 +19,8 @@ Rectangle {
         anchors.margins: 8
         spacing: 8
 
-        Text {
+        Label {
             text: qsTr("Scenes")
-            color: "white"
             font.bold: true
         }
 
@@ -36,8 +35,8 @@ Rectangle {
                 width: parent.width
                 height: 56
                 radius: 6
-                color: index === sceneModel.activeIndex ? "#2D2D2D" : "#171717"
-                border.color: index === sceneModel.activeIndex ? "#86C0FF" : "#333"
+                color: index === sceneModel.activeIndex ? palette.highlight : palette.base
+                border.color: index === sceneModel.activeIndex ? palette.highlight : palette.mid
                 border.width: 1
 
                 MouseArea {
@@ -50,9 +49,9 @@ Rectangle {
                     anchors.margins: 8
                     spacing: 8
 
-                    Text {
+                    Label {
                         text: name
-                        color: "white"
+                        color: index === sceneModel.activeIndex ? palette.highlightedText : palette.text
                         elide: Text.ElideRight
                         verticalAlignment: Text.AlignVCenter
                         Layout.fillWidth: true
@@ -61,7 +60,6 @@ Rectangle {
                     Button {
                         text: qsTr("Remove")
                         onClicked: sceneModel.removeScene(index)
-                        background: Rectangle { color: "#3A3A3A"; radius: 6 }
                     }
                 }
             }
@@ -70,7 +68,6 @@ Rectangle {
         Button {
             text: qsTr("+")
             onClicked: sidebar.newModelRequest()
-            background: Rectangle { color: "#3A3A3A"; radius: 6 }
         }
 
         GroupBox {
@@ -130,7 +127,6 @@ Rectangle {
                     text: qsTr("Reset Offset")
                     enabled: sceneModel.activeScene !== null
                     onClicked: if (sceneModel.activeScene) sceneModel.activeScene.sceneOffset = Qt.vector3d(0, 0, 0)
-                    background: Rectangle { color: "#3A3A3A"; radius: 6 }
                 }
             }
         }

@@ -1,11 +1,14 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQuickStyle>
 #include <QtQml/qqmlextensionplugin.h>
 
 Q_IMPORT_QML_PLUGIN(BvhScenePlugin)
 
 int main(int argc, char *argv[])
 {
+    QQuickStyle::setStyle("Fusion");
+
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
