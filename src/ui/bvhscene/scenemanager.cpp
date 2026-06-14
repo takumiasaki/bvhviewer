@@ -161,10 +161,6 @@ bool SceneManager::loadScene(const QUrl& fileUrl)
 
     relayoutSceneOffsets();
 
-    if (m_activeIndex == -1) {
-        setActiveIndex(insertIndex);
-    }
-
     if (m_currentFrame < 0 && m_entries.back().model->frameCount() > 0) {
         setCurrentFrame(0);
     } else if (m_currentFrame >= 0) {
@@ -304,7 +300,11 @@ void SceneManager::applyAnimationTimeToAll()
 void SceneManager::syncCurrentFrameFromModels()
 {
     const BvhSkeletonItem* active = activeScene();
-    const int frame = active ? active->currentFrame() : -1;
+    if (!active) {
+        return;
+    }
+
+    const int frame = active->currentFrame();
     if (frame == m_currentFrame) {
         return;
     }

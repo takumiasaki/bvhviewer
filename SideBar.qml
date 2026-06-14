@@ -33,7 +33,7 @@ Rectangle {
             Layout.fillHeight: true
             delegate: Rectangle {
                 width: parent.width
-                height: 56
+                height: 40
                 radius: 6
                 color: index === sceneModel.activeIndex ? palette.highlight : palette.base
                 border.color: index === sceneModel.activeIndex ? palette.highlight : palette.mid
@@ -49,17 +49,19 @@ Rectangle {
                     anchors.margins: 8
                     spacing: 8
 
+                    CheckBox {
+                        checked: skeleton.visible
+                        onToggled: skeleton.visible = checked
+                        ToolTip.visible: hovered
+                        ToolTip.text: qsTr("Show in 3D view")
+                    }
+
                     Label {
                         text: name
                         color: index === sceneModel.activeIndex ? palette.highlightedText : palette.text
                         elide: Text.ElideRight
                         verticalAlignment: Text.AlignVCenter
                         Layout.fillWidth: true
-                    }
-
-                    Button {
-                        text: qsTr("Remove")
-                        onClicked: sceneModel.removeScene(index)
                     }
                 }
             }
@@ -70,22 +72,39 @@ Rectangle {
             onClicked: sidebar.newModelRequest()
         }
 
-        GroupBox {
-            title: qsTr("Active Scene")
+        Rectangle {
+            id: activeScenePanel
+            visible: sceneModel.activeIndex >= 0
             Layout.fillWidth: true
-            enabled: sceneModel.activeScene !== null
+            radius: 6
+            color: palette.base
+            border.color: palette.mid
+            border.width: 1
+            implicitHeight: activeSceneLayout.implicitHeight + 16
 
             ColumnLayout {
+                id: activeSceneLayout
                 anchors.fill: parent
                 anchors.margins: 8
                 spacing: 8
 
                 RowLayout {
-                    spacing: 8
-                    Label { text: qsTr("Visible") }
-                    Switch {
-                        checked: sceneModel.activeScene ? sceneModel.activeScene.visible : false
-                        onCheckedChanged: if (sceneModel.activeScene) sceneModel.activeScene.visible = checked
+                    Layout.fillWidth: true
+                    spacing: 4
+
+                    Label {
+                        text: qsTr("Active Scene")
+                        font.bold: true
+                        color: palette.text
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    ToolButton {
+                        text: "\u00d7"
+                        ToolTip.visible: hovered
+                        ToolTip.text: qsTr("Deselect scene")
+                        onClicked: sceneModel.activeIndex = -1
                     }
                 }
 
@@ -97,7 +116,6 @@ Rectangle {
                         to: 1000
                         stepSize: 10
                         value: sceneModel.activeScene ? sceneModel.activeScene.sceneOffset.x : 0
-                        enabled: sceneModel.activeScene !== null
                         onValueChanged: {
                             if (!sceneModel.activeScene) return
                             var o = sceneModel.activeScene.sceneOffset
@@ -114,7 +132,6 @@ Rectangle {
                         to: 1000
                         stepSize: 10
                         value: sceneModel.activeScene ? sceneModel.activeScene.sceneOffset.y : 0
-                        enabled: sceneModel.activeScene !== null
                         onValueChanged: {
                             if (!sceneModel.activeScene) return
                             var o = sceneModel.activeScene.sceneOffset
@@ -125,8 +142,12 @@ Rectangle {
 
                 Button {
                     text: qsTr("Reset Offset")
-                    enabled: sceneModel.activeScene !== null
                     onClicked: if (sceneModel.activeScene) sceneModel.activeScene.sceneOffset = Qt.vector3d(0, 0, 0)
+                }
+
+                Button {
+                    text: qsTr("Remove")
+                    onClicked: sceneModel.removeScene(sceneModel.activeIndex)
                 }
             }
         }

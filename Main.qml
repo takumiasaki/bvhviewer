@@ -89,16 +89,16 @@ ApplicationWindow {
                     Button {
                         id: playButton
                         text: sceneManager.playing ? qsTr("Pause") : qsTr("Play")
-                        enabled: sceneManager.activeScene && sceneManager.activeScene.frameCount > 1
-                        visible: sceneManager.activeScene && sceneManager.activeScene.valid
+                        enabled: sceneManager.sceneCount > 0 && sceneManager.frameCount > 1
+                        visible: sceneManager.sceneCount > 0 && sceneManager.frameCount > 0
                         onClicked: sceneManager.toggle()
                     }
 
                     Button {
                         id: resetButton
                         text: qsTr("Reset")
-                        enabled: sceneManager.activeScene && sceneManager.activeScene.valid && !sceneManager.playing
-                        visible: sceneManager.activeScene && sceneManager.activeScene.valid
+                        enabled: sceneManager.sceneCount > 0 && sceneManager.frameCount > 0 && !sceneManager.playing
+                        visible: sceneManager.sceneCount > 0 && sceneManager.frameCount > 0
                         onClicked: {
                             sceneManager.animationTime = 0
                             sceneManager.currentFrame = 0
@@ -112,15 +112,13 @@ ApplicationWindow {
                         to: sceneManager.frameCount > 0 ? Math.max(0, sceneManager.frameCount - 1) : 0
                         stepSize: 1
                         value: sceneManager.currentFrame >= 0 ? sceneManager.currentFrame : 0
-                        visible: sceneManager.activeScene && sceneManager.frameCount > 0
+                        visible: sceneManager.sceneCount > 0 && sceneManager.frameCount > 0
                         onMoved: sceneManager.currentFrame = Math.round(value)
                     }
 
                     Label {
-                        visible: sceneManager.activeScene && sceneManager.frameCount > 0
-                        text: sceneManager.activeScene
-                              ? qsTr("Frame %1 / %2").arg(sceneManager.currentFrame).arg(Math.max(0, sceneManager.frameCount - 1))
-                              : ""
+                        visible: sceneManager.sceneCount > 0 && sceneManager.frameCount > 0
+                        text: qsTr("Frame %1 / %2").arg(sceneManager.currentFrame).arg(Math.max(0, sceneManager.frameCount - 1))
                         verticalAlignment: Text.AlignVCenter
                     }
                 }
