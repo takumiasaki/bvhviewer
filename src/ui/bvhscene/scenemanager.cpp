@@ -7,6 +7,8 @@
 #include <QFileInfo>
 #include <QtMath>
 
+#include <cmath>
+
 namespace {
 
 constexpr qreal kSceneSpacing = 200.0;
@@ -94,10 +96,7 @@ void SceneManager::setActiveIndex(int index)
     }
 
     m_activeIndex = index;
-    syncCurrentFrameFromModels();
     emit activeIndexChanged();
-    emit frameCountChanged();
-    emit frameTimeChanged();
 }
 
 BvhSkeletonItem* SceneManager::activeScene() const
@@ -110,14 +109,58 @@ BvhSkeletonItem* SceneManager::activeScene() const
 
 int SceneManager::frameCount() const
 {
-    const BvhSkeletonItem* active = activeScene();
-    return active ? active->frameCount() : 0;
+    const double ft = frameTime();
+    if (ft <= 0.0) {
+        return 0;
+    }
+
+    const double d = duration();
+    return static_cast<int>(std::floor(d / ft)) + 1;
 }
 
 double SceneManager::frameTime() const
 {
-    const BvhSkeletonItem* active = activeScene();
-    return active ? active->frameTime() : 0.0;
+    double minFrameTime = 0.0;
+    bool found = false;
+
+    for (const SkeletonEntry& entry : m_entries) {
+        if (!entry.item || !entry.item->isValid() || entry.item->frameCount() <= 0) {
+            continue;
+        }
+
+        const double ft = entry.item->frameTime();
+        if (ft <= 0.0) {
+            continue;
+        }
+
+        if (!found || ft < minFrameTime) {
+            minFrameTime = ft;
+            found = true;
+        }
+    }
+
+    return found ? minFrameTime : 0.0;
+}
+
+qreal SceneManager::duration() const
+{
+    double maxDuration = 0.0;
+
+    for (const SkeletonEntry& entry : m_entries) {
+        if (!entry.item || !entry.item->isValid()) {
+            continue;
+        }
+
+        const int count = entry.item->frameCount();
+        if (count <= 1) {
+            continue;
+        }
+
+        const double skeletonDuration = static_cast<double>(count - 1) * entry.item->frameTime();
+        maxDuration = qMax(maxDuration, skeletonDuration);
+    }
+
+    return maxDuration;
 }
 
 bool SceneManager::loadScene(const QUrl& fileUrl)
@@ -161,15 +204,17 @@ bool SceneManager::loadScene(const QUrl& fileUrl)
 
     relayoutSceneOffsets();
 
-    if (m_currentFrame < 0 && m_entries.back().model->frameCount() > 0) {
-        setCurrentFrame(0);
-    } else if (m_currentFrame >= 0) {
-        m_entries.back().model->setFrame(m_currentFrame);
+    emit sceneCountChanged();
+    emitTimelineChanged();
+
+    if (m_currentFrame < 0) {
+        setAnimationTime(0.0);
+    } else {
+        clampAnimationTimeToDuration();
+        applyAnimationTimeToVisible();
+        syncCurrentFrameFromAnimationTime();
     }
 
-    emit sceneCountChanged();
-    emit frameCountChanged();
-    emit frameTimeChanged();
     return true;
 }
 
@@ -190,8 +235,11 @@ bool SceneManager::removeScene(int index)
 
     if (m_entries.empty()) {
         setActiveIndex(-1);
+        setPlaying(false);
         m_currentFrame = -1;
+        m_animationTime = 0.0;
         emit currentFrameChanged();
+        emit animationTimeChanged();
     } else if (m_activeIndex == index) {
         setActiveIndex(qMin(index, static_cast<int>(m_entries.size()) - 1));
     } else if (m_activeIndex > index) {
@@ -201,8 +249,10 @@ bool SceneManager::removeScene(int index)
 
     relayoutSceneOffsets();
     emit sceneCountChanged();
-    emit frameCountChanged();
-    emit frameTimeChanged();
+    emitTimelineChanged();
+    clampAnimationTimeToDuration();
+    applyAnimationTimeToVisible();
+    syncCurrentFrameFromAnimationTime();
     return true;
 }
 
@@ -225,41 +275,40 @@ void SceneManager::setPlaying(bool playing)
 
 void SceneManager::setAnimationTime(qreal time)
 {
-    if (qFuzzyCompare(time + 1.0, m_animationTime + 1.0)) {
+    const qreal d = duration();
+    const qreal clamped = d > 0.0 ? qBound<qreal>(0.0, time, d) : 0.0;
+    if (qFuzzyCompare(clamped + 1.0, m_animationTime + 1.0)) {
         return;
     }
 
-    m_animationTime = time;
-    applyAnimationTimeToAll();
-    syncCurrentFrameFromModels();
+    m_animationTime = clamped;
+    applyAnimationTimeToVisible();
+    syncCurrentFrameFromAnimationTime();
     emit animationTimeChanged();
 }
 
 void SceneManager::setCurrentFrame(int frame)
 {
-    if (frame == m_currentFrame) {
+    const double ft = frameTime();
+    if (ft <= 0.0) {
         return;
     }
 
-    m_currentFrame = frame;
-
-    for (const SkeletonEntry& entry : m_entries) {
-        if (entry.model && entry.model->isValid() && entry.model->frameCount() > 0) {
-            entry.model->setFrame(frame);
-        }
-    }
-
-    const double ft = frameTime();
-    if (ft > 0.0) {
-        m_animationTime = frame * ft;
-        emit animationTimeChanged();
-    }
-
-    emit currentFrameChanged();
+    const int maxFrame = qMax(0, frameCount() - 1);
+    const int clampedFrame = qBound(0, frame, maxFrame);
+    setAnimationTime(static_cast<qreal>(clampedFrame) * ft);
 }
 
 void SceneManager::play()
 {
+    if (frameCount() <= 1 || duration() <= 0.0) {
+        return;
+    }
+
+    if (m_animationTime >= duration()) {
+        setAnimationTime(0.0);
+    }
+
     setPlaying(true);
 }
 
@@ -270,7 +319,11 @@ void SceneManager::pause()
 
 void SceneManager::toggle()
 {
-    setPlaying(!m_playing);
+    if (m_playing) {
+        pause();
+    } else {
+        play();
+    }
 }
 
 void SceneManager::relayoutSceneOffsets()
@@ -288,28 +341,67 @@ void SceneManager::relayoutSceneOffsets()
     }
 }
 
-void SceneManager::applyAnimationTimeToAll()
+void SceneManager::applyAnimationTimeToVisible()
 {
     for (const SkeletonEntry& entry : m_entries) {
-        if (entry.model && entry.model->isValid()) {
-            entry.model->setPoseAtTime(m_animationTime);
+        if (entry.item && entry.item->visible()) {
+            syncPoseForSkeleton(entry.item);
         }
     }
 }
 
-void SceneManager::syncCurrentFrameFromModels()
+void SceneManager::syncPoseForSkeleton(BvhSkeletonItem* item)
 {
-    const BvhSkeletonItem* active = activeScene();
-    if (!active) {
+    if (!item || !item->visible()) {
         return;
     }
 
-    const int frame = active->currentFrame();
+    Bvh3DModel* model = item->model();
+    if (model && model->isValid()) {
+        model->setPoseAtTime(m_animationTime);
+    }
+}
+
+void SceneManager::syncCurrentFrameFromAnimationTime()
+{
+    const double ft = frameTime();
+    if (ft <= 0.0) {
+        if (m_currentFrame != -1) {
+            m_currentFrame = -1;
+            emit currentFrameChanged();
+        }
+        return;
+    }
+
+    int frame = qRound(m_animationTime / ft);
+    const int maxFrame = qMax(0, frameCount() - 1);
+    frame = qBound(0, frame, maxFrame);
+
     if (frame == m_currentFrame) {
         return;
     }
+
     m_currentFrame = frame;
     emit currentFrameChanged();
+}
+
+void SceneManager::emitTimelineChanged()
+{
+    emit frameCountChanged();
+    emit frameTimeChanged();
+    emit durationChanged();
+}
+
+void SceneManager::clampAnimationTimeToDuration()
+{
+    const qreal d = duration();
+    const qreal clamped = d > 0.0 ? qBound<qreal>(0.0, m_animationTime, d) : 0.0;
+    if (qFuzzyCompare(clamped + 1.0, m_animationTime + 1.0)) {
+        return;
+    }
+
+    m_animationTime = clamped;
+    emit animationTimeChanged();
 }
 
 void SceneManager::setLastError(const QString& error)
@@ -330,16 +422,16 @@ void SceneManager::connectSkeletonSignals(BvhSkeletonItem* item)
     connect(item, &BvhSkeletonItem::displayNameChanged, this, &SceneManager::handleSkeletonUpdated);
     connect(item, &BvhSkeletonItem::validChanged, this, &SceneManager::handleSkeletonUpdated);
     connect(item, &BvhSkeletonItem::frameCountChanged, this, [this]() {
-        emit frameCountChanged();
+        emitTimelineChanged();
         handleSkeletonUpdated();
     });
     connect(item, &BvhSkeletonItem::frameTimeChanged, this, [this]() {
-        emit frameTimeChanged();
+        emitTimelineChanged();
         handleSkeletonUpdated();
     });
-    connect(item, &BvhSkeletonItem::currentFrameChanged, this, [this, item]() {
-        if (item == activeScene()) {
-            syncCurrentFrameFromModels();
+    connect(item, &BvhSkeletonItem::visibleChanged, this, [this, item]() {
+        if (item->visible()) {
+            syncPoseForSkeleton(item);
         }
     });
 }

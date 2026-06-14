@@ -203,10 +203,18 @@ sequenceDiagram
 2. 全 `Bvh3DModel::setFrame(n)` を呼び出し
 3. `animationTime` を `n * frameTime`（アクティブスケルトン基準）へ同期
 
-### フレーム数の扱い
+### フレーム数・時間の扱い
 
-- スライダー `to` は **アクティブスケルトン** の `frameCount - 1` を使用。
-- 再生時、各スケルトンは自身の `frameCount` に対し `setPoseAtTime` 内で時間を wrap（3D Data Model 側の clamp/wrap 規則に従う）。
+[アニメーションコントロール要件・仕様書](../requirements/animation-controls.md) に従う。
+
+- タイムライン算出の対象は **読み込み済み・有効な全スケルトン**（表示・選択状態に非依存）。
+- ポーズ更新（`setPoseAtTime`）は **表示中（visible）** のスケルトンのみ。
+- `frameTime` = 集計対象の **最小** `Frame Time`。
+- `duration` = 集計対象の **`(frameCount - 1) × frameTime` の最大値**（BVH 慣習）。
+- `frameCount`（シーン）= `floor(duration / frameTime) + 1` を推奨。端数問題時は最大 `frameCount` でも可。
+- 正の再生位置は `animationTime`（秒）。`currentFrame` はそこから導出する。
+- `setPoseAtTime(animationTime)` は表示対象スケルトンのみに適用する。
+- QML 駆動は `NumberAnimation` の `from: 0` 固定バインドではなく、経過時間積算（Timer 等）を推奨。
 
 ---
 

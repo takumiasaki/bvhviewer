@@ -25,6 +25,7 @@ class SceneManager : public QAbstractListModel {
     Q_PROPERTY(int currentFrame READ currentFrame WRITE setCurrentFrame NOTIFY currentFrameChanged)
     Q_PROPERTY(int frameCount READ frameCount NOTIFY frameCountChanged)
     Q_PROPERTY(double frameTime READ frameTime NOTIFY frameTimeChanged)
+    Q_PROPERTY(qreal duration READ duration NOTIFY durationChanged)
 
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
@@ -64,6 +65,7 @@ public:
 
     int frameCount() const;
     double frameTime() const;
+    qreal duration() const;
 
     QString lastError() const { return m_lastError; }
 
@@ -84,6 +86,7 @@ signals:
     void currentFrameChanged();
     void frameCountChanged();
     void frameTimeChanged();
+    void durationChanged();
     void lastErrorChanged();
 
 private:
@@ -95,8 +98,11 @@ private:
     };
 
     void relayoutSceneOffsets();
-    void applyAnimationTimeToAll();
-    void syncCurrentFrameFromModels();
+    void applyAnimationTimeToVisible();
+    void syncCurrentFrameFromAnimationTime();
+    void syncPoseForSkeleton(BvhSkeletonItem* item);
+    void emitTimelineChanged();
+    void clampAnimationTimeToDuration();
     void setLastError(const QString& error);
     void connectSkeletonSignals(BvhSkeletonItem* item);
     void handleSkeletonUpdated();
