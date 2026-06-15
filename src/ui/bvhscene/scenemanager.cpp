@@ -187,16 +187,21 @@ bool SceneManager::loadScene(const QUrl& fileUrl)
 
     auto model = std::make_unique<Bvh3DModel>(bvhFile);
     model->setDisplayName(info.completeBaseName());
-    model->setColor(colorForIndex(static_cast<int>(m_entries.size())));
+    const int paletteIndex = static_cast<int>(m_entries.size());
+    const QColor defaultColor = defaultColorForPaletteIndex(paletteIndex);
+    model->setJointColor(defaultColor);
+    model->setBoneColor(defaultColor);
+    model->setColorsLinked(true);
 
-    const int insertIndex = static_cast<int>(m_entries.size());
+    const int insertIndex = paletteIndex;
     beginInsertRows(QModelIndex(), insertIndex, insertIndex);
 
     SkeletonEntry entry;
     entry.bvhFile = std::move(bvhFile);
     entry.model = std::move(model);
     entry.sourcePath = filePath;
-    entry.item = new BvhSkeletonItem(entry.model.get(), filePath, this);
+    entry.paletteIndex = paletteIndex;
+    entry.item = new BvhSkeletonItem(entry.model.get(), filePath, paletteIndex, this);
     connectSkeletonSignals(entry.item);
 
     m_entries.push_back(std::move(entry));
@@ -434,6 +439,9 @@ void SceneManager::connectSkeletonSignals(BvhSkeletonItem* item)
             syncPoseForSkeleton(item);
         }
     });
+    connect(item, &BvhSkeletonItem::jointColorChanged, this, &SceneManager::handleSkeletonUpdated);
+    connect(item, &BvhSkeletonItem::boneColorChanged, this, &SceneManager::handleSkeletonUpdated);
+    connect(item, &BvhSkeletonItem::colorsLinkedChanged, this, &SceneManager::handleSkeletonUpdated);
 }
 
 void SceneManager::handleSkeletonUpdated()
@@ -458,7 +466,29 @@ int SceneManager::rowForSkeleton(BvhSkeletonItem* item) const
     return -1;
 }
 
-QColor SceneManager::colorForIndex(int index)
+QColor SceneManager::defaultColorForPaletteIndex(int index)
 {
     return kPalette[index % kPaletteSize];
+}
+
+QColor SceneManager::colorForIndex(int index) const
+{
+    return defaultColorForPaletteIndex(index);
+}
+
+void SceneManager::resetSkeletonColors(int index)
+{
+    if (index < 0 || index >= static_cast<int>(m_entries.size())) {
+        return;
+    }
+
+    BvhSkeletonItem* item = m_entries.at(static_cast<size_t>(index)).item;
+    if (!item) {
+        return;
+    }
+
+    const QColor defaultColor = defaultColorForPaletteIndex(m_entries.at(static_cast<size_t>(index)).paletteIndex);
+    item->setColorsLinked(true);
+    item->setJointColor(defaultColor);
+    item->setBoneColor(defaultColor);
 }

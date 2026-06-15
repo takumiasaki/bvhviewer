@@ -72,25 +72,39 @@ Item {
                 model: sceneManager
 
                 Node {
+                    id: skeletonNode
                     required property int index
                     required property BvhSkeletonItem skeleton
 
                     visible: skeleton.visible
                     position: skeleton.sceneOffset
 
+                    property color jointColor: skeleton.jointColor
+                    property color boneColor: skeleton.boneColor
+
+                    Connections {
+                        target: skeletonNode.skeleton
+                        function onJointColorChanged() {
+                            skeletonNode.jointColor = skeletonNode.skeleton.jointColor
+                        }
+                        function onBoneColorChanged() {
+                            skeletonNode.boneColor = skeletonNode.skeleton.boneColor
+                        }
+                    }
+
                     Repeater3D {
-                        model: skeleton.jointModel
+                        model: skeletonNode.skeleton.jointModel
 
                         Model {
                             source: "#Sphere"
                             position: model.position
                             scale: Qt.vector3d(
-                                (model.isEndSite ? endSiteDiameter : jointDiameter) / builtinMeshSize,
-                                (model.isEndSite ? endSiteDiameter : jointDiameter) / builtinMeshSize,
-                                (model.isEndSite ? endSiteDiameter : jointDiameter) / builtinMeshSize)
+                                (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize,
+                                (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize,
+                                (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize)
                             materials: [
                                 PrincipledMaterial {
-                                    baseColor: skeleton.color
+                                    baseColor: skeletonNode.jointColor
                                     roughness: 0.3
                                     metalness: 0.1
                                 }
@@ -99,19 +113,19 @@ Item {
                     }
 
                     Repeater3D {
-                        model: skeleton.boneModel
+                        model: skeletonNode.skeleton.boneModel
 
                         Model {
                             source: "#Cylinder"
                             position: model.position
                             rotation: model.rotation
                             scale: Qt.vector3d(
-                                boneDiameter / builtinMeshSize,
-                                (model.length > 0 ? model.length : 0.01) / builtinMeshSize,
-                                boneDiameter / builtinMeshSize)
+                                root.boneDiameter / root.builtinMeshSize,
+                                (model.length > 0 ? model.length : 0.01) / root.builtinMeshSize,
+                                root.boneDiameter / root.builtinMeshSize)
                             materials: [
                                 PrincipledMaterial {
-                                    baseColor: skeleton.color
+                                    baseColor: skeletonNode.boneColor
                                     roughness: 0.4
                                     metalness: 0.1
                                 }

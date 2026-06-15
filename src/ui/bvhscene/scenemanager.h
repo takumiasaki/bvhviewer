@@ -73,6 +73,8 @@ public:
     Q_INVOKABLE bool removeScene(int index);
     Q_INVOKABLE BvhSkeletonItem* skeletonAt(int index) const;
     Q_INVOKABLE int count() const { return sceneCount(); }
+    Q_INVOKABLE QColor colorForIndex(int index) const;
+    Q_INVOKABLE void resetSkeletonColors(int index);
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
@@ -95,6 +97,7 @@ private:
         std::unique_ptr<Bvh3DModel> model;
         BvhSkeletonItem* item = nullptr;
         QString sourcePath;
+        int paletteIndex = 0;
     };
 
     void relayoutSceneOffsets();
@@ -107,7 +110,7 @@ private:
     void connectSkeletonSignals(BvhSkeletonItem* item);
     void handleSkeletonUpdated();
     int rowForSkeleton(BvhSkeletonItem* item) const;
-    static QColor colorForIndex(int index);
+    static QColor defaultColorForPaletteIndex(int index);
 
     std::vector<SkeletonEntry> m_entries;
     int m_activeIndex = -1;

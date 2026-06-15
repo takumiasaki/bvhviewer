@@ -2,10 +2,14 @@
 
 #include <QFileInfo>
 
-BvhSkeletonItem::BvhSkeletonItem(Bvh3DModel* model, const QString& sourcePath, QObject* parent)
+BvhSkeletonItem::BvhSkeletonItem(Bvh3DModel* model,
+                                 const QString& sourcePath,
+                                 int paletteIndex,
+                                 QObject* parent)
     : QObject(parent)
     , m_model(model)
     , m_sourcePath(sourcePath)
+    , m_paletteIndex(paletteIndex)
 {
     connectModelSignals();
 }
@@ -41,9 +45,45 @@ void BvhSkeletonItem::setVisible(bool visible)
     }
 }
 
+QColor BvhSkeletonItem::jointColor() const
+{
+    return m_model ? m_model->jointColor() : QColor(Qt::white);
+}
+
+void BvhSkeletonItem::setJointColor(const QColor& color)
+{
+    if (m_model) {
+        m_model->setJointColor(color);
+    }
+}
+
+QColor BvhSkeletonItem::boneColor() const
+{
+    return m_model ? m_model->boneColor() : QColor(Qt::white);
+}
+
+void BvhSkeletonItem::setBoneColor(const QColor& color)
+{
+    if (m_model) {
+        m_model->setBoneColor(color);
+    }
+}
+
+bool BvhSkeletonItem::colorsLinked() const
+{
+    return m_model ? m_model->colorsLinked() : true;
+}
+
+void BvhSkeletonItem::setColorsLinked(bool linked)
+{
+    if (m_model) {
+        m_model->setColorsLinked(linked);
+    }
+}
+
 QColor BvhSkeletonItem::color() const
 {
-    return m_model ? m_model->color() : QColor(Qt::white);
+    return jointColor();
 }
 
 void BvhSkeletonItem::setColor(const QColor& color)
@@ -90,6 +130,9 @@ void BvhSkeletonItem::connectModelSignals()
     }
 
     connect(m_model, &Bvh3DModel::visibleChanged, this, &BvhSkeletonItem::visibleChanged);
+    connect(m_model, &Bvh3DModel::jointColorChanged, this, &BvhSkeletonItem::jointColorChanged);
+    connect(m_model, &Bvh3DModel::boneColorChanged, this, &BvhSkeletonItem::boneColorChanged);
+    connect(m_model, &Bvh3DModel::colorsLinkedChanged, this, &BvhSkeletonItem::colorsLinkedChanged);
     connect(m_model, &Bvh3DModel::colorChanged, this, &BvhSkeletonItem::colorChanged);
     connect(m_model, &Bvh3DModel::displayNameChanged, this, &BvhSkeletonItem::displayNameChanged);
     connect(m_model, &Bvh3DModel::bvhFileChanged, this, &BvhSkeletonItem::validChanged);

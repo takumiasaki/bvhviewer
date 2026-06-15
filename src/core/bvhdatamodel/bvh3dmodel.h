@@ -20,6 +20,9 @@ class Bvh3DModel : public QObject {
     Q_PROPERTY(double frameTime READ frameTime NOTIFY bvhFileChanged)
     Q_PROPERTY(int currentFrame READ currentFrame NOTIFY currentFrameChanged)
     Q_PROPERTY(bool visible READ visible WRITE setVisible NOTIFY visibleChanged)
+    Q_PROPERTY(QColor jointColor READ jointColor WRITE setJointColor NOTIFY jointColorChanged)
+    Q_PROPERTY(QColor boneColor READ boneColor WRITE setBoneColor NOTIFY boneColorChanged)
+    Q_PROPERTY(bool colorsLinked READ colorsLinked WRITE setColorsLinked NOTIFY colorsLinkedChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(QString displayName READ displayName WRITE setDisplayName NOTIFY displayNameChanged)
     Q_PROPERTY(bool valid READ isValid NOTIFY bvhFileChanged)
@@ -46,7 +49,16 @@ public:
     bool visible() const { return m_visible; }
     void setVisible(bool visible);
 
-    QColor color() const { return m_color; }
+    QColor jointColor() const { return m_jointColor; }
+    void setJointColor(const QColor& color);
+
+    QColor boneColor() const { return m_boneColor; }
+    void setBoneColor(const QColor& color);
+
+    bool colorsLinked() const { return m_colorsLinked; }
+    void setColorsLinked(bool linked);
+
+    QColor color() const { return m_jointColor; }
     void setColor(const QColor& color);
 
     QString displayName() const { return m_displayName; }
@@ -63,6 +75,9 @@ signals:
     void currentFrameChanged();
     void poseUpdated();
     void visibleChanged();
+    void jointColorChanged();
+    void boneColorChanged();
+    void colorsLinkedChanged();
     void colorChanged();
     void displayNameChanged();
     void attachFailed(const QString& reason);
@@ -84,7 +99,9 @@ private:
     int m_currentFrame = -1;
     bool m_poseRefreshScheduled = false;
     bool m_visible = true;
-    QColor m_color = Qt::white;
+    QColor m_jointColor = Qt::white;
+    QColor m_boneColor = Qt::white;
+    bool m_colorsLinked = true;
     QString m_displayName;
 };
 

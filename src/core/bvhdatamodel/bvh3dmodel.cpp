@@ -70,13 +70,57 @@ void Bvh3DModel::setVisible(bool visible)
     emit visibleChanged();
 }
 
-void Bvh3DModel::setColor(const QColor& color)
+void Bvh3DModel::setJointColor(const QColor& color)
 {
-    if (m_color == color) {
+    if (m_jointColor == color && (!m_colorsLinked || m_boneColor == color)) {
         return;
     }
-    m_color = color;
+
+    m_jointColor = color;
+    emit jointColorChanged();
     emit colorChanged();
+
+    if (m_colorsLinked && m_boneColor != color) {
+        m_boneColor = color;
+        emit boneColorChanged();
+    }
+}
+
+void Bvh3DModel::setBoneColor(const QColor& color)
+{
+    if (m_boneColor == color) {
+        return;
+    }
+    m_boneColor = color;
+    emit boneColorChanged();
+}
+
+void Bvh3DModel::setColorsLinked(bool linked)
+{
+    if (m_colorsLinked == linked) {
+        return;
+    }
+    m_colorsLinked = linked;
+    emit colorsLinkedChanged();
+
+    if (m_colorsLinked && m_boneColor != m_jointColor) {
+        m_boneColor = m_jointColor;
+        emit boneColorChanged();
+    }
+}
+
+void Bvh3DModel::setColor(const QColor& color)
+{
+    const bool wasLinked = m_colorsLinked;
+    m_colorsLinked = true;
+    if (!wasLinked) {
+        emit colorsLinkedChanged();
+    }
+    setJointColor(color);
+    if (m_boneColor != color) {
+        m_boneColor = color;
+        emit boneColorChanged();
+    }
 }
 
 void Bvh3DModel::setDisplayName(const QString& name)

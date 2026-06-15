@@ -25,6 +25,9 @@ qt_add_qml_module(app_bvhviewer
         Main.qml
         SideBar.qml
         Bvh3DView.qml
+        ActiveScenePanel.qml
+        DualColorSwatch.qml
+        SceneColorUtils.js
         SemanticColors.qml
     DEPENDENCIES
         TARGET lib_ui_bvhscene

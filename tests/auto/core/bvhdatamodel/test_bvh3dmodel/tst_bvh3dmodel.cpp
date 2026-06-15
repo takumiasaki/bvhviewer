@@ -28,6 +28,7 @@ private slots:
     void testInterpolation();
     void testListModelRoles();
     void testSetFrameClamps();
+    void testSkeletonColors();
 
 private:
     QString m_debugAxesPath;
@@ -191,6 +192,34 @@ void TestBvh3DModel::testSetFrameClamps()
 
     model.setFrame(-5);
     QCOMPARE(model.currentFrame(), 0);
+}
+
+void TestBvh3DModel::testSkeletonColors()
+{
+    Bvh3DModel model(m_bvhFile);
+
+    const QColor jointColor(QStringLiteral("#67C1FF"));
+    const QColor boneColor(QStringLiteral("#FF9F5E"));
+
+    model.setColorsLinked(false);
+    model.setJointColor(jointColor);
+    model.setBoneColor(boneColor);
+    QVERIFY(!model.colorsLinked());
+    QCOMPARE(model.jointColor(), jointColor);
+    QCOMPARE(model.boneColor(), boneColor);
+
+    model.setColorsLinked(true);
+    QVERIFY(model.colorsLinked());
+    QCOMPARE(model.boneColor(), jointColor);
+
+    model.setJointColor(boneColor);
+    QCOMPARE(model.boneColor(), boneColor);
+
+    model.setColor(jointColor);
+    QVERIFY(model.colorsLinked());
+    QCOMPARE(model.jointColor(), jointColor);
+    QCOMPARE(model.boneColor(), jointColor);
+    QCOMPARE(model.color(), jointColor);
 }
 
 QTEST_MAIN(TestBvh3DModel)

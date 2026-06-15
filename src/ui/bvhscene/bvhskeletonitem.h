@@ -21,7 +21,11 @@ class BvhSkeletonItem : public QObject {
     Q_PROPERTY(BvhBoneListModel* boneModel READ boneModel CONSTANT)
     Q_PROPERTY(QVector3D sceneOffset READ sceneOffset WRITE setSceneOffset NOTIFY sceneOffsetChanged)
     Q_PROPERTY(bool visible READ visible WRITE setVisible NOTIFY visibleChanged)
+    Q_PROPERTY(QColor jointColor READ jointColor WRITE setJointColor NOTIFY jointColorChanged)
+    Q_PROPERTY(QColor boneColor READ boneColor WRITE setBoneColor NOTIFY boneColorChanged)
+    Q_PROPERTY(bool colorsLinked READ colorsLinked WRITE setColorsLinked NOTIFY colorsLinkedChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
+    Q_PROPERTY(int paletteIndex READ paletteIndex CONSTANT)
     Q_PROPERTY(QString displayName READ displayName NOTIFY displayNameChanged)
     Q_PROPERTY(QUrl source READ source CONSTANT)
     Q_PROPERTY(QString sourcePath READ sourcePath CONSTANT)
@@ -31,7 +35,10 @@ class BvhSkeletonItem : public QObject {
     Q_PROPERTY(int currentFrame READ currentFrame NOTIFY currentFrameChanged)
 
 public:
-    explicit BvhSkeletonItem(Bvh3DModel* model, const QString& sourcePath, QObject* parent = nullptr);
+    explicit BvhSkeletonItem(Bvh3DModel* model,
+                               const QString& sourcePath,
+                               int paletteIndex,
+                               QObject* parent = nullptr);
 
     Bvh3DModel* model() const { return m_model; }
     BvhJointListModel* jointModel() const;
@@ -43,8 +50,19 @@ public:
     bool visible() const;
     void setVisible(bool visible);
 
+    QColor jointColor() const;
+    void setJointColor(const QColor& color);
+
+    QColor boneColor() const;
+    void setBoneColor(const QColor& color);
+
+    bool colorsLinked() const;
+    void setColorsLinked(bool linked);
+
     QColor color() const;
     void setColor(const QColor& color);
+
+    int paletteIndex() const { return m_paletteIndex; }
 
     QString displayName() const;
     QUrl source() const;
@@ -58,6 +76,9 @@ public:
 signals:
     void sceneOffsetChanged();
     void visibleChanged();
+    void jointColorChanged();
+    void boneColorChanged();
+    void colorsLinkedChanged();
     void colorChanged();
     void displayNameChanged();
     void validChanged();
@@ -71,6 +92,7 @@ private:
     Bvh3DModel* m_model = nullptr;
     QString m_sourcePath;
     QVector3D m_sceneOffset;
+    int m_paletteIndex = 0;
 };
 
 #endif // BVHSKELETONITEM_H
