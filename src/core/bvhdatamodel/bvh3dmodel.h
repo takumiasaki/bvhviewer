@@ -21,13 +21,24 @@ class Bvh3DModel : public QObject {
     Q_PROPERTY(int currentFrame READ currentFrame NOTIFY currentFrameChanged)
     Q_PROPERTY(bool visible READ visible WRITE setVisible NOTIFY visibleChanged)
     Q_PROPERTY(QColor jointColor READ jointColor WRITE setJointColor NOTIFY jointColorChanged)
-    Q_PROPERTY(QColor boneColor READ boneColor WRITE setBoneColor NOTIFY boneColorChanged)
-    Q_PROPERTY(bool colorsLinked READ colorsLinked WRITE setColorsLinked NOTIFY colorsLinkedChanged)
+    Q_PROPERTY(QColor boneColor READ boneColor NOTIFY boneColorChanged)
+    Q_PROPERTY(BoneColorMode boneColorMode READ boneColorMode WRITE setBoneColorMode NOTIFY boneColorModeChanged)
+    Q_PROPERTY(int boneTone READ boneTone WRITE setBoneTone NOTIFY boneToneChanged)
+    Q_PROPERTY(QColor customBoneColor READ customBoneColor WRITE setCustomBoneColor NOTIFY customBoneColorChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(QString displayName READ displayName WRITE setDisplayName NOTIFY displayNameChanged)
     Q_PROPERTY(bool valid READ isValid NOTIFY bvhFileChanged)
 
 public:
+    enum BoneColorMode {
+        SameAsJoint = 0,
+        ToneOffset = 1,
+        Custom = 2
+    };
+    Q_ENUM(BoneColorMode)
+
+    static QColor colorFromTone(const QColor& jointColor, int tone);
+
     explicit Bvh3DModel(QObject* parent = nullptr);
     explicit Bvh3DModel(std::shared_ptr<BvhFile> bvhFile, QObject* parent = nullptr);
     ~Bvh3DModel() override;
@@ -53,10 +64,15 @@ public:
     void setJointColor(const QColor& color);
 
     QColor boneColor() const { return m_boneColor; }
-    void setBoneColor(const QColor& color);
 
-    bool colorsLinked() const { return m_colorsLinked; }
-    void setColorsLinked(bool linked);
+    BoneColorMode boneColorMode() const { return m_boneColorMode; }
+    void setBoneColorMode(BoneColorMode mode);
+
+    int boneTone() const { return m_boneTone; }
+    void setBoneTone(int tone);
+
+    QColor customBoneColor() const { return m_customBoneColor; }
+    void setCustomBoneColor(const QColor& color);
 
     QColor color() const { return m_jointColor; }
     void setColor(const QColor& color);
@@ -77,12 +93,17 @@ signals:
     void visibleChanged();
     void jointColorChanged();
     void boneColorChanged();
-    void colorsLinkedChanged();
+    void boneColorModeChanged();
+    void boneToneChanged();
+    void customBoneColorChanged();
     void colorChanged();
     void displayNameChanged();
     void attachFailed(const QString& reason);
 
 private:
+    QColor effectiveBoneColor() const;
+    void applyEffectiveBoneColor();
+
     void buildSkeletonMetadata();
     void updatePoseFromBvhFile(bool immediateNotify = false);
     void flushPoseRefresh();
@@ -101,7 +122,9 @@ private:
     bool m_visible = true;
     QColor m_jointColor = Qt::white;
     QColor m_boneColor = Qt::white;
-    bool m_colorsLinked = true;
+    QColor m_customBoneColor = Qt::white;
+    BoneColorMode m_boneColorMode = ToneOffset;
+    int m_boneTone = -25;
     QString m_displayName;
 };
 

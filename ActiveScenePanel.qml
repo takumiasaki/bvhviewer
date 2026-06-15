@@ -14,10 +14,12 @@ Rectangle {
     readonly property int tabOffset: 0
     readonly property int tabAppearance: 1
     readonly property int tabRemove: 2
+    readonly property int boneModeSameAsJoint: 0
+    readonly property int boneModeToneOffset: 1
+    readonly property int boneModeCustom: 2
 
     property int currentTab: tabOffset
     property bool suppressOffsetWrite: false
-    property real boneTone: ColorUtils.defaultBoneTone
     property int colorPickTarget: 0
 
     readonly property bool panelVisible: sceneModel.activeIndex >= 0
@@ -52,16 +54,6 @@ Rectangle {
         sceneModel.activeIndex = -1
     }
 
-    function syncAppearanceUiFromSkeleton() {
-        if (!sceneModel.activeScene) {
-            return
-        }
-        boneTone = sceneModel.activeScene.colorsLinked
-                     ? ColorUtils.defaultBoneTone
-                     : ColorUtils.estimateBoneTone(sceneModel.activeScene.jointColor,
-                                                   sceneModel.activeScene.boneColor)
-    }
-
     function resetOffsetToDefault() {
         if (!sceneModel.activeScene) {
             return
@@ -76,15 +68,13 @@ Rectangle {
             return
         }
         sceneModel.resetSkeletonColors(sceneModel.activeIndex)
-        syncAppearanceUiFromSkeleton()
     }
 
-    function applyBoneTone(tone) {
-        if (!sceneModel.activeScene || sceneModel.activeScene.colorsLinked) {
+    function setBoneColorMode(mode) {
+        if (!sceneModel.activeScene) {
             return
         }
-        sceneModel.activeScene.boneColor = ColorUtils.boneColorFromTone(
-                    sceneModel.activeScene.jointColor, tone)
+        sceneModel.activeScene.boneColorMode = mode
     }
 
     function openJointColorDialog() {
@@ -103,7 +93,7 @@ Rectangle {
         }
         colorPickTarget = 1
         colorDialog.title = qsTr("Bone color")
-        colorDialog.selectedColor = sceneModel.activeScene.boneColor
+        colorDialog.selectedColor = sceneModel.activeScene.customBoneColor
         colorDialog.open()
     }
 
@@ -115,14 +105,9 @@ Rectangle {
             }
             if (colorPickTarget === 0) {
                 sceneModel.activeScene.jointColor = selectedColor
-                if (!sceneModel.activeScene.colorsLinked) {
-                    applyBoneTone(boneTone)
-                }
             } else {
-                sceneModel.activeScene.colorsLinked = false
-                sceneModel.activeScene.boneColor = selectedColor
-                boneTone = ColorUtils.estimateBoneTone(sceneModel.activeScene.jointColor,
-                                                       selectedColor)
+                sceneModel.activeScene.boneColorMode = root.boneModeCustom
+                sceneModel.activeScene.customBoneColor = selectedColor
             }
         }
     }
@@ -264,10 +249,14 @@ Rectangle {
 
                     Label {
                         text: qsTr("Joint")
+                        Layout.row: 0
+                        Layout.column: 0
                         Layout.alignment: Qt.AlignVCenter
                     }
 
                     Rectangle {
+                        Layout.row: 0
+                        Layout.column: 1
                         Layout.preferredWidth: 24
                         Layout.preferredHeight: 24
                         radius: 2
@@ -277,88 +266,84 @@ Rectangle {
                     }
 
                     Button {
+                        Layout.row: 0
+                        Layout.column: 2
+                        Layout.fillWidth: true
                         text: qsTr("Choose color…")
                         enabled: sceneModel.activeScene
                         onClicked: root.openJointColorDialog()
                     }
-                }
-
-                CheckBox {
-                    text: qsTr("Same color for joints and bones")
-                    enabled: sceneModel.activeScene
-                    checked: sceneModel.activeScene ? sceneModel.activeScene.colorsLinked : true
-                    onToggled: {
-                        if (sceneModel.activeScene) {
-                            sceneModel.activeScene.colorsLinked = checked
-                            if (!checked) {
-                                root.applyBoneTone(root.boneTone)
-                            }
-                        }
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-                    enabled: sceneModel.activeScene && !sceneModel.activeScene.colorsLinked
-                    opacity: enabled ? 1.0 : 0.45
 
                     Label {
-                        text: qsTr("Bone tone (same hue, adjust lightness)")
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
+                        text: qsTr("Bone")
+                        Layout.row: 1
+                        Layout.column: 0
+                        Layout.rowSpan: 2
+                        Layout.alignment: Qt.AlignTop
+                        Layout.topMargin: 6
                     }
 
-                    RowLayout {
+                    ComboBox {
+                        id: boneModeCombo
+                        Layout.row: 1
+                        Layout.column: 1
+                        Layout.columnSpan: 2
                         Layout.fillWidth: true
-                        spacing: 8
+                        enabled: sceneModel.activeScene
+                        model: [
+                            qsTr("Same as joint color"),
+                            qsTr("Tone offset from joint"),
+                            qsTr("Custom bone color")
+                        ]
+                        currentIndex: sceneModel.activeScene
+                                      ? sceneModel.activeScene.boneColorMode
+                                      : root.boneModeToneOffset
+                        onActivated: root.setBoneColorMode(currentIndex)
+                    }
 
-                        Label {
-                            text: qsTr("Darker")
-                            font.pixelSize: 11
-                        }
+                    Rectangle {
+                        Layout.row: 2
+                        Layout.column: 1
+                        Layout.preferredWidth: 24
+                        Layout.preferredHeight: 24
+                        radius: 2
+                        color: sceneModel.activeScene ? sceneModel.activeScene.boneColor : "white"
+                        border.color: palette.mid
+                        border.width: 1
+                    }
 
-                        Slider {
-                            Layout.fillWidth: true
-                            from: -100
-                            to: 100
-                            stepSize: 5
-                            value: root.boneTone
-                            onMoved: {
-                                root.boneTone = value
-                                root.applyBoneTone(value)
+                    Button {
+                        Layout.row: 2
+                        Layout.column: 2
+                        Layout.fillWidth: true
+                        text: qsTr("Choose color…")
+                        enabled: sceneModel.activeScene
+                                  && sceneModel.activeScene.boneColorMode === root.boneModeCustom
+                        onClicked: root.openBoneColorDialog()
+                    }
+
+                    Label {
+                        Layout.row: 3
+                        Layout.column: 1
+                        text: qsTr("Tone:")
+                        enabled: sceneModel.activeScene
+                                 && sceneModel.activeScene.boneColorMode === root.boneModeToneOffset
+                    }
+
+                    ToneColorBar {
+                        id: toneSlider
+                        Layout.row: 3
+                        Layout.column: 2
+                        Layout.fillWidth: true
+                        jointColor: sceneModel.activeScene ? sceneModel.activeScene.jointColor : "white"
+                        value: sceneModel.activeScene ? sceneModel.activeScene.boneTone : ColorUtils.defaultBoneTone
+                        enabled: sceneModel.activeScene
+                                 && sceneModel.activeScene.boneColorMode === root.boneModeToneOffset
+                        helpText: qsTr("Same hue as the joint; drag to adjust bone lightness.")
+                        onMoved: {
+                            if (sceneModel.activeScene) {
+                                sceneModel.activeScene.boneTone = value
                             }
-                        }
-
-                        Label {
-                            text: qsTr("Lighter")
-                            font.pixelSize: 11
-                        }
-                    }
-
-                    GridLayout {
-                        columns: 3
-                        columnSpacing: 8
-                        rowSpacing: 8
-                        Layout.fillWidth: true
-
-                        Label {
-                            text: qsTr("Bone")
-                            Layout.alignment: Qt.AlignVCenter
-                        }
-
-                        Rectangle {
-                            Layout.preferredWidth: 24
-                            Layout.preferredHeight: 24
-                            radius: 2
-                            color: sceneModel.activeScene ? sceneModel.activeScene.boneColor : "white"
-                            border.color: palette.mid
-                            border.width: 1
-                        }
-
-                        Button {
-                            text: qsTr("Choose color…")
-                            onClicked: root.openBoneColorDialog()
                         }
                     }
                 }
@@ -400,7 +385,6 @@ Rectangle {
                 return
             }
             syncOffsetSpinBoxes()
-            syncAppearanceUiFromSkeleton()
         }
     }
 
@@ -409,6 +393,9 @@ Rectangle {
         enabled: sceneModel.activeScene
         function onSceneOffsetChanged() {
             syncOffsetSpinBoxes()
+        }
+        function onBoneColorModeChanged() {
+            boneModeCombo.currentIndex = sceneModel.activeScene.boneColorMode
         }
     }
 

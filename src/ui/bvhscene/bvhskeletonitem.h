@@ -22,8 +22,10 @@ class BvhSkeletonItem : public QObject {
     Q_PROPERTY(QVector3D sceneOffset READ sceneOffset WRITE setSceneOffset NOTIFY sceneOffsetChanged)
     Q_PROPERTY(bool visible READ visible WRITE setVisible NOTIFY visibleChanged)
     Q_PROPERTY(QColor jointColor READ jointColor WRITE setJointColor NOTIFY jointColorChanged)
-    Q_PROPERTY(QColor boneColor READ boneColor WRITE setBoneColor NOTIFY boneColorChanged)
-    Q_PROPERTY(bool colorsLinked READ colorsLinked WRITE setColorsLinked NOTIFY colorsLinkedChanged)
+    Q_PROPERTY(QColor boneColor READ boneColor NOTIFY boneColorChanged)
+    Q_PROPERTY(Bvh3DModel::BoneColorMode boneColorMode READ boneColorMode WRITE setBoneColorMode NOTIFY boneColorModeChanged)
+    Q_PROPERTY(int boneTone READ boneTone WRITE setBoneTone NOTIFY boneToneChanged)
+    Q_PROPERTY(QColor customBoneColor READ customBoneColor WRITE setCustomBoneColor NOTIFY customBoneColorChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(int paletteIndex READ paletteIndex CONSTANT)
     Q_PROPERTY(QString displayName READ displayName NOTIFY displayNameChanged)
@@ -54,10 +56,15 @@ public:
     void setJointColor(const QColor& color);
 
     QColor boneColor() const;
-    void setBoneColor(const QColor& color);
 
-    bool colorsLinked() const;
-    void setColorsLinked(bool linked);
+    Bvh3DModel::BoneColorMode boneColorMode() const;
+    void setBoneColorMode(Bvh3DModel::BoneColorMode mode);
+
+    int boneTone() const;
+    void setBoneTone(int tone);
+
+    QColor customBoneColor() const;
+    void setCustomBoneColor(const QColor& color);
 
     QColor color() const;
     void setColor(const QColor& color);
@@ -78,7 +85,9 @@ signals:
     void visibleChanged();
     void jointColorChanged();
     void boneColorChanged();
-    void colorsLinkedChanged();
+    void boneColorModeChanged();
+    void boneToneChanged();
+    void customBoneColorChanged();
     void colorChanged();
     void displayNameChanged();
     void validChanged();

@@ -62,22 +62,39 @@ QColor BvhSkeletonItem::boneColor() const
     return m_model ? m_model->boneColor() : QColor(Qt::white);
 }
 
-void BvhSkeletonItem::setBoneColor(const QColor& color)
+Bvh3DModel::BoneColorMode BvhSkeletonItem::boneColorMode() const
+{
+    return m_model ? m_model->boneColorMode() : Bvh3DModel::ToneOffset;
+}
+
+void BvhSkeletonItem::setBoneColorMode(Bvh3DModel::BoneColorMode mode)
 {
     if (m_model) {
-        m_model->setBoneColor(color);
+        m_model->setBoneColorMode(mode);
     }
 }
 
-bool BvhSkeletonItem::colorsLinked() const
+int BvhSkeletonItem::boneTone() const
 {
-    return m_model ? m_model->colorsLinked() : true;
+    return m_model ? m_model->boneTone() : -25;
 }
 
-void BvhSkeletonItem::setColorsLinked(bool linked)
+void BvhSkeletonItem::setBoneTone(int tone)
 {
     if (m_model) {
-        m_model->setColorsLinked(linked);
+        m_model->setBoneTone(tone);
+    }
+}
+
+QColor BvhSkeletonItem::customBoneColor() const
+{
+    return m_model ? m_model->customBoneColor() : QColor(Qt::white);
+}
+
+void BvhSkeletonItem::setCustomBoneColor(const QColor& color)
+{
+    if (m_model) {
+        m_model->setCustomBoneColor(color);
     }
 }
 
@@ -132,7 +149,9 @@ void BvhSkeletonItem::connectModelSignals()
     connect(m_model, &Bvh3DModel::visibleChanged, this, &BvhSkeletonItem::visibleChanged);
     connect(m_model, &Bvh3DModel::jointColorChanged, this, &BvhSkeletonItem::jointColorChanged);
     connect(m_model, &Bvh3DModel::boneColorChanged, this, &BvhSkeletonItem::boneColorChanged);
-    connect(m_model, &Bvh3DModel::colorsLinkedChanged, this, &BvhSkeletonItem::colorsLinkedChanged);
+    connect(m_model, &Bvh3DModel::boneColorModeChanged, this, &BvhSkeletonItem::boneColorModeChanged);
+    connect(m_model, &Bvh3DModel::boneToneChanged, this, &BvhSkeletonItem::boneToneChanged);
+    connect(m_model, &Bvh3DModel::customBoneColorChanged, this, &BvhSkeletonItem::customBoneColorChanged);
     connect(m_model, &Bvh3DModel::colorChanged, this, &BvhSkeletonItem::colorChanged);
     connect(m_model, &Bvh3DModel::displayNameChanged, this, &BvhSkeletonItem::displayNameChanged);
     connect(m_model, &Bvh3DModel::bvhFileChanged, this, &BvhSkeletonItem::validChanged);

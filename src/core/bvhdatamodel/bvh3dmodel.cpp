@@ -11,6 +11,29 @@
 #include <QtMath>
 #include <algorithm>
 
+namespace {
+
+QColor boneColorFromTone(const QColor& jointColor, int tone)
+{
+    if (tone == 0) {
+        return jointColor;
+    }
+
+    const int magnitude = qAbs(tone);
+    const int qtFactor = 100 + magnitude;
+    if (tone > 0) {
+        return jointColor.lighter(qtFactor);
+    }
+    return jointColor.darker(qtFactor);
+}
+
+} // namespace
+
+QColor Bvh3DModel::colorFromTone(const QColor& jointColor, int tone)
+{
+    return boneColorFromTone(jointColor, tone);
+}
+
 Bvh3DModel::Bvh3DModel(QObject* parent)
     : QObject(parent)
     , m_jointModel(new BvhJointListModel(this))
@@ -72,7 +95,7 @@ void Bvh3DModel::setVisible(bool visible)
 
 void Bvh3DModel::setJointColor(const QColor& color)
 {
-    if (m_jointColor == color && (!m_colorsLinked || m_boneColor == color)) {
+    if (m_jointColor == color) {
         return;
     }
 
@@ -80,47 +103,79 @@ void Bvh3DModel::setJointColor(const QColor& color)
     emit jointColorChanged();
     emit colorChanged();
 
-    if (m_colorsLinked && m_boneColor != color) {
-        m_boneColor = color;
-        emit boneColorChanged();
+    if (m_boneColorMode == BoneColorMode::SameAsJoint || m_boneColorMode == BoneColorMode::ToneOffset) {
+        applyEffectiveBoneColor();
     }
 }
 
-void Bvh3DModel::setBoneColor(const QColor& color)
+void Bvh3DModel::setBoneColorMode(BoneColorMode mode)
 {
-    if (m_boneColor == color) {
+    if (m_boneColorMode == mode) {
         return;
     }
-    m_boneColor = color;
+    m_boneColorMode = mode;
+    emit boneColorModeChanged();
+    applyEffectiveBoneColor();
+}
+
+void Bvh3DModel::setBoneTone(int tone)
+{
+    tone = qBound(-100, tone, 100);
+    if (m_boneTone == tone) {
+        return;
+    }
+    m_boneTone = tone;
+    emit boneToneChanged();
+
+    if (m_boneColorMode == BoneColorMode::ToneOffset) {
+        applyEffectiveBoneColor();
+    }
+}
+
+void Bvh3DModel::setCustomBoneColor(const QColor& color)
+{
+    if (m_customBoneColor == color) {
+        return;
+    }
+    m_customBoneColor = color;
+    emit customBoneColorChanged();
+
+    if (m_boneColorMode == BoneColorMode::Custom) {
+        applyEffectiveBoneColor();
+    }
+}
+
+QColor Bvh3DModel::effectiveBoneColor() const
+{
+    switch (m_boneColorMode) {
+    case BoneColorMode::SameAsJoint:
+        return m_jointColor;
+    case BoneColorMode::ToneOffset:
+        return boneColorFromTone(m_jointColor, m_boneTone);
+    case BoneColorMode::Custom:
+        return m_customBoneColor;
+    }
+    return m_jointColor;
+}
+
+void Bvh3DModel::applyEffectiveBoneColor()
+{
+    const QColor effective = effectiveBoneColor();
+    if (m_boneColor == effective) {
+        return;
+    }
+    m_boneColor = effective;
     emit boneColorChanged();
-}
-
-void Bvh3DModel::setColorsLinked(bool linked)
-{
-    if (m_colorsLinked == linked) {
-        return;
-    }
-    m_colorsLinked = linked;
-    emit colorsLinkedChanged();
-
-    if (m_colorsLinked && m_boneColor != m_jointColor) {
-        m_boneColor = m_jointColor;
-        emit boneColorChanged();
-    }
 }
 
 void Bvh3DModel::setColor(const QColor& color)
 {
-    const bool wasLinked = m_colorsLinked;
-    m_colorsLinked = true;
-    if (!wasLinked) {
-        emit colorsLinkedChanged();
+    const bool wasSameAsJoint = m_boneColorMode == BoneColorMode::SameAsJoint;
+    m_boneColorMode = BoneColorMode::SameAsJoint;
+    if (!wasSameAsJoint) {
+        emit boneColorModeChanged();
     }
     setJointColor(color);
-    if (m_boneColor != color) {
-        m_boneColor = color;
-        emit boneColorChanged();
-    }
 }
 
 void Bvh3DModel::setDisplayName(const QString& name)

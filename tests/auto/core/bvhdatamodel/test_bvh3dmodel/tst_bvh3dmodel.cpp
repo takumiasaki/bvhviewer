@@ -199,24 +199,39 @@ void TestBvh3DModel::testSkeletonColors()
     Bvh3DModel model(m_bvhFile);
 
     const QColor jointColor(QStringLiteral("#67C1FF"));
-    const QColor boneColor(QStringLiteral("#FF9F5E"));
+    const QColor customColor(QStringLiteral("#FF9F5E"));
 
-    model.setColorsLinked(false);
     model.setJointColor(jointColor);
-    model.setBoneColor(boneColor);
-    QVERIFY(!model.colorsLinked());
-    QCOMPARE(model.jointColor(), jointColor);
-    QCOMPARE(model.boneColor(), boneColor);
+    model.setBoneTone(-25);
+    model.setCustomBoneColor(customColor);
 
-    model.setColorsLinked(true);
-    QVERIFY(model.colorsLinked());
-    QCOMPARE(model.boneColor(), jointColor);
+    model.setBoneColorMode(Bvh3DModel::Custom);
+    QCOMPARE(model.boneColorMode(), Bvh3DModel::Custom);
+    QCOMPARE(model.boneColor(), customColor);
+    QCOMPARE(model.customBoneColor(), customColor);
 
-    model.setJointColor(boneColor);
-    QCOMPARE(model.boneColor(), boneColor);
+    model.setJointColor(QColor(QStringLiteral("#112233")));
+    QCOMPARE(model.boneColor(), customColor);
+
+    model.setBoneColorMode(Bvh3DModel::SameAsJoint);
+    QCOMPARE(model.boneColorMode(), Bvh3DModel::SameAsJoint);
+    QCOMPARE(model.boneColor(), model.jointColor());
+    QCOMPARE(model.boneTone(), -25);
+
+    model.setBoneColorMode(Bvh3DModel::ToneOffset);
+    QCOMPARE(model.boneTone(), -25);
+    QVERIFY(model.boneColor() != model.jointColor());
+
+    model.setBoneColorMode(Bvh3DModel::Custom);
+    QCOMPARE(model.boneColor(), customColor);
+
+    model.setBoneColorMode(Bvh3DModel::SameAsJoint);
+    model.setBoneColorMode(Bvh3DModel::Custom);
+    model.setBoneColorMode(Bvh3DModel::ToneOffset);
+    QCOMPARE(model.boneTone(), -25);
 
     model.setColor(jointColor);
-    QVERIFY(model.colorsLinked());
+    QCOMPARE(model.boneColorMode(), Bvh3DModel::SameAsJoint);
     QCOMPARE(model.jointColor(), jointColor);
     QCOMPARE(model.boneColor(), jointColor);
     QCOMPARE(model.color(), jointColor);

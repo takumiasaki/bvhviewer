@@ -7,8 +7,6 @@
 #include <QFileInfo>
 #include <QtMath>
 
-#include <cmath>
-
 namespace {
 
 constexpr qreal kSceneSpacing = 200.0;
@@ -22,23 +20,6 @@ const QColor kPalette[] = {
 };
 constexpr int kPaletteSize = sizeof(kPalette) / sizeof(kPalette[0]);
 constexpr int kDefaultBoneTone = -25;
-
-QColor boneColorFromTone(const QColor& jointColor, int tone)
-{
-    if (tone == 0) {
-        return jointColor;
-    }
-
-    // QColor::darker/lighter(int) expect factors on a 100-based scale where values
-    // above 100 darken/lighten respectively. Passing a qreal like 1.25 truncates to 1
-    // on Qt < 6.6 and unintentionally lightens the color instead.
-    const qreal factor = 1.0 + std::abs(tone) / 100.0;
-    const int qtFactor = qRound(100.0 * factor);
-    if (tone > 0) {
-        return jointColor.lighter(qtFactor);
-    }
-    return jointColor.darker(qtFactor);
-}
 
 } // namespace
 
@@ -207,9 +188,10 @@ bool SceneManager::loadScene(const QUrl& fileUrl)
     model->setDisplayName(info.completeBaseName());
     const int paletteIndex = static_cast<int>(m_entries.size());
     const QColor jointColor = defaultColorForPaletteIndex(paletteIndex);
+    model->setBoneTone(kDefaultBoneTone);
     model->setJointColor(jointColor);
-    model->setBoneColor(boneColorFromTone(jointColor, kDefaultBoneTone));
-    model->setColorsLinked(false);
+    model->setCustomBoneColor(Bvh3DModel::colorFromTone(jointColor, kDefaultBoneTone));
+    model->setBoneColorMode(Bvh3DModel::ToneOffset);
 
     const int insertIndex = paletteIndex;
     beginInsertRows(QModelIndex(), insertIndex, insertIndex);
@@ -468,7 +450,9 @@ void SceneManager::connectSkeletonSignals(BvhSkeletonItem* item)
     });
     connect(item, &BvhSkeletonItem::jointColorChanged, this, &SceneManager::handleSkeletonUpdated);
     connect(item, &BvhSkeletonItem::boneColorChanged, this, &SceneManager::handleSkeletonUpdated);
-    connect(item, &BvhSkeletonItem::colorsLinkedChanged, this, &SceneManager::handleSkeletonUpdated);
+    connect(item, &BvhSkeletonItem::boneColorModeChanged, this, &SceneManager::handleSkeletonUpdated);
+    connect(item, &BvhSkeletonItem::boneToneChanged, this, &SceneManager::handleSkeletonUpdated);
+    connect(item, &BvhSkeletonItem::customBoneColorChanged, this, &SceneManager::handleSkeletonUpdated);
 }
 
 void SceneManager::handleSkeletonUpdated()
@@ -515,7 +499,8 @@ void SceneManager::resetSkeletonColors(int index)
     }
 
     const QColor jointColor = defaultColorForPaletteIndex(m_entries.at(static_cast<size_t>(index)).paletteIndex);
-    item->setColorsLinked(false);
+    item->setBoneTone(kDefaultBoneTone);
+    item->setCustomBoneColor(Bvh3DModel::colorFromTone(jointColor, kDefaultBoneTone));
     item->setJointColor(jointColor);
-    item->setBoneColor(boneColorFromTone(jointColor, kDefaultBoneTone));
+    item->setBoneColorMode(Bvh3DModel::ToneOffset);
 }
