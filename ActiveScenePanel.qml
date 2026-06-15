@@ -67,7 +67,7 @@ Rectangle {
             return
         }
         suppressOffsetWrite = true
-        sceneModel.activeScene.sceneOffset = Qt.vector3d(0, 0, 0)
+        sceneModel.activeScene.userSceneOffset = Qt.vector3d(0, 0, 0)
         suppressOffsetWrite = false
     }
 
@@ -197,13 +197,13 @@ Rectangle {
                         from: -1000
                         to: 1000
                         stepSize: 10
-                        value: sceneModel.activeScene ? sceneModel.activeScene.sceneOffset.x : 0
+                        value: sceneModel.activeScene ? sceneModel.activeScene.userSceneOffset.x : 0
                         onValueChanged: {
                             if (root.suppressOffsetWrite || !sceneModel.activeScene) {
                                 return
                             }
-                            const o = sceneModel.activeScene.sceneOffset
-                            sceneModel.activeScene.sceneOffset = Qt.vector3d(value, o.y, o.z)
+                            const o = sceneModel.activeScene.userSceneOffset
+                            sceneModel.activeScene.userSceneOffset = Qt.vector3d(value, o.y, o.z)
                         }
                     }
                 }
@@ -216,13 +216,32 @@ Rectangle {
                         from: -1000
                         to: 1000
                         stepSize: 10
-                        value: sceneModel.activeScene ? sceneModel.activeScene.sceneOffset.y : 0
+                        value: sceneModel.activeScene ? sceneModel.activeScene.userSceneOffset.y : 0
                         onValueChanged: {
                             if (root.suppressOffsetWrite || !sceneModel.activeScene) {
                                 return
                             }
-                            const o = sceneModel.activeScene.sceneOffset
-                            sceneModel.activeScene.sceneOffset = Qt.vector3d(o.x, value, o.z)
+                            const o = sceneModel.activeScene.userSceneOffset
+                            sceneModel.activeScene.userSceneOffset = Qt.vector3d(o.x, value, o.z)
+                        }
+                    }
+                }
+
+                RowLayout {
+                    spacing: 8
+                    Label { text: qsTr("Offset Z") }
+                    SpinBox {
+                        id: offsetZSpinBox
+                        from: -1000
+                        to: 1000
+                        stepSize: 10
+                        value: sceneModel.activeScene ? sceneModel.activeScene.userSceneOffset.z : 0
+                        onValueChanged: {
+                            if (root.suppressOffsetWrite || !sceneModel.activeScene) {
+                                return
+                            }
+                            const o = sceneModel.activeScene.userSceneOffset
+                            sceneModel.activeScene.userSceneOffset = Qt.vector3d(o.x, o.y, value)
                         }
                     }
                 }
@@ -398,8 +417,9 @@ Rectangle {
             return
         }
         suppressOffsetWrite = true
-        offsetXSpinBox.value = sceneModel.activeScene.sceneOffset.x
-        offsetYSpinBox.value = sceneModel.activeScene.sceneOffset.y
+        offsetXSpinBox.value = sceneModel.activeScene.userSceneOffset.x
+        offsetYSpinBox.value = sceneModel.activeScene.userSceneOffset.y
+        offsetZSpinBox.value = sceneModel.activeScene.userSceneOffset.z
         suppressOffsetWrite = false
     }
 }

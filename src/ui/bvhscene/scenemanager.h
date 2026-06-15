@@ -29,6 +29,8 @@ class SceneManager : public QAbstractListModel {
 
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
+    Q_PROPERTY(bool floorShadowsEnabled READ floorShadowsEnabled WRITE setFloorShadowsEnabled NOTIFY floorShadowsEnabledChanged)
+
 public:
     enum SceneRoles {
         NameRole = Qt::UserRole + 1,
@@ -69,6 +71,9 @@ public:
 
     QString lastError() const { return m_lastError; }
 
+    bool floorShadowsEnabled() const { return m_floorShadowsEnabled; }
+    void setFloorShadowsEnabled(bool enabled);
+
     Q_INVOKABLE bool loadScene(const QUrl& fileUrl);
     Q_INVOKABLE bool removeScene(int index);
     Q_INVOKABLE BvhSkeletonItem* skeletonAt(int index) const;
@@ -90,6 +95,7 @@ signals:
     void frameTimeChanged();
     void durationChanged();
     void lastErrorChanged();
+    void floorShadowsEnabledChanged();
 
 private:
     struct SkeletonEntry {
@@ -118,6 +124,7 @@ private:
     qreal m_animationTime = 0.0;
     int m_currentFrame = -1;
     QString m_lastError;
+    bool m_floorShadowsEnabled = true;
 };
 
 #endif // SCENEMANAGER_H

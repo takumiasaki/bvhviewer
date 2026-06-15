@@ -41,6 +41,15 @@ ApplicationWindow {
                 onTriggered: Qt.quit()
             }
         }
+        Menu {
+            title: qsTr("&View")
+            Action {
+                text: qsTr("Show &Floor Shadows")
+                checkable: true
+                checked: sceneManager.floorShadowsEnabled
+                onTriggered: sceneManager.floorShadowsEnabled = checked
+            }
+        }
     }
 
     RowLayout {

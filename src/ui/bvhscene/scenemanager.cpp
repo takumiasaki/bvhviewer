@@ -278,6 +278,15 @@ void SceneManager::setPlaying(bool playing)
     emit playingChanged();
 }
 
+void SceneManager::setFloorShadowsEnabled(bool enabled)
+{
+    if (m_floorShadowsEnabled == enabled) {
+        return;
+    }
+    m_floorShadowsEnabled = enabled;
+    emit floorShadowsEnabledChanged();
+}
+
 void SceneManager::setAnimationTime(qreal time)
 {
     const qreal d = duration();

@@ -44,8 +44,13 @@ Item {
 
         DirectionalLight {
             color: "#ffffff"
-            brightness: 2.0
+            ambientColor: Qt.rgba(0.0, 0.0, 0.0, 1.0)
+            brightness: 1.8
             eulerRotation: Qt.vector3d(-45, 0, 0)
+            castsShadow: sceneManager.floorShadowsEnabled
+            shadowMapQuality: Light.ShadowMapQualityVeryHigh
+            shadowMapFar: 1200
+            pcfFactor: 0.5
         }
 
         Model {
@@ -56,12 +61,14 @@ Item {
             }
             materials: [
                 PrincipledMaterial {
-                    baseColor: "#383840"
+                    baseColor: "#50505a"
                     roughness: 1.0
                 }
             ]
             position: Qt.vector3d(0, 0, 0)
             eulerRotation: Qt.vector3d(-90, 0, 0)
+            castsShadows: false
+            receivesShadows: true
         }
 
         Node {
@@ -102,6 +109,9 @@ Item {
                                 (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize,
                                 (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize,
                                 (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize)
+                            castsShadows: sceneManager.floorShadowsEnabled
+                            receivesShadows: false
+                            depthBias: 0.15
                             materials: [
                                 PrincipledMaterial {
                                     baseColor: skeletonNode.jointColor
@@ -123,6 +133,9 @@ Item {
                                 root.boneDiameter / root.builtinMeshSize,
                                 (model.length > 0 ? model.length : 0.01) / root.builtinMeshSize,
                                 root.boneDiameter / root.builtinMeshSize)
+                            castsShadows: sceneManager.floorShadowsEnabled
+                            receivesShadows: false
+                            depthBias: 0.15
                             materials: [
                                 PrincipledMaterial {
                                     baseColor: skeletonNode.boneColor
