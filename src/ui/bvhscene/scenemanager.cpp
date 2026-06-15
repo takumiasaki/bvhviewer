@@ -21,6 +21,24 @@ const QColor kPalette[] = {
     QColor(QStringLiteral("#FFD464")),
 };
 constexpr int kPaletteSize = sizeof(kPalette) / sizeof(kPalette[0]);
+constexpr int kDefaultBoneTone = -25;
+
+QColor boneColorFromTone(const QColor& jointColor, int tone)
+{
+    if (tone == 0) {
+        return jointColor;
+    }
+
+    // QColor::darker/lighter(int) expect factors on a 100-based scale where values
+    // above 100 darken/lighten respectively. Passing a qreal like 1.25 truncates to 1
+    // on Qt < 6.6 and unintentionally lightens the color instead.
+    const qreal factor = 1.0 + std::abs(tone) / 100.0;
+    const int qtFactor = qRound(100.0 * factor);
+    if (tone > 0) {
+        return jointColor.lighter(qtFactor);
+    }
+    return jointColor.darker(qtFactor);
+}
 
 } // namespace
 
@@ -188,10 +206,10 @@ bool SceneManager::loadScene(const QUrl& fileUrl)
     auto model = std::make_unique<Bvh3DModel>(bvhFile);
     model->setDisplayName(info.completeBaseName());
     const int paletteIndex = static_cast<int>(m_entries.size());
-    const QColor defaultColor = defaultColorForPaletteIndex(paletteIndex);
-    model->setJointColor(defaultColor);
-    model->setBoneColor(defaultColor);
-    model->setColorsLinked(true);
+    const QColor jointColor = defaultColorForPaletteIndex(paletteIndex);
+    model->setJointColor(jointColor);
+    model->setBoneColor(boneColorFromTone(jointColor, kDefaultBoneTone));
+    model->setColorsLinked(false);
 
     const int insertIndex = paletteIndex;
     beginInsertRows(QModelIndex(), insertIndex, insertIndex);
@@ -496,8 +514,8 @@ void SceneManager::resetSkeletonColors(int index)
         return;
     }
 
-    const QColor defaultColor = defaultColorForPaletteIndex(m_entries.at(static_cast<size_t>(index)).paletteIndex);
-    item->setColorsLinked(true);
-    item->setJointColor(defaultColor);
-    item->setBoneColor(defaultColor);
+    const QColor jointColor = defaultColorForPaletteIndex(m_entries.at(static_cast<size_t>(index)).paletteIndex);
+    item->setColorsLinked(false);
+    item->setJointColor(jointColor);
+    item->setBoneColor(boneColorFromTone(jointColor, kDefaultBoneTone));
 }
