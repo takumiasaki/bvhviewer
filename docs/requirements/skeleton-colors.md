@@ -11,6 +11,9 @@
 | v2.0.1 | 2026/06/15 | スナップショット・暗黙復元を廃止。即時反映 + Reset のみ |
 | v2.1.0 | 2026/06/16 | Appearance: `colorsLinked` を Bone モード ComboBox（Same / Tone / Custom）に変更。デフォルト Tone offset |
 | v2.2.0 | 2026/06/16 | `boneTone` と `customBoneColor` を独立保持。`boneColor` はモードに応じた effective 色 |
+| v2.3.0 | 2026/06/16 | 実装状況タグ追加（backlog 連携） |
+
+**実装状況:** `[実装済]` — 残件・タグ凡例は [backlog.md](./backlog.md) を参照。
 
 ---
 
@@ -145,5 +148,6 @@ Active Scene · {name}                         [×]
 
 ## 9. 関連ドキュメント
 
-- [要件定義書](./requirements.md)
+- [要件定義書](./requirements.md) — F03, F03-2
+- [実装状況・残件リスト](./backlog.md)
 - [Scene Manager 設計](../design/scene-manager.md)
