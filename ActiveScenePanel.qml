@@ -4,7 +4,6 @@ import QtQuick.Dialogs
 import QtQuick.Layouts
 
 import BvhScene 1.0
-import "SceneColorUtils.js" as ColorUtils
 
 Rectangle {
     id: root
@@ -336,7 +335,7 @@ Rectangle {
                         Layout.column: 2
                         Layout.fillWidth: true
                         jointColor: sceneModel.activeScene ? sceneModel.activeScene.jointColor : "white"
-                        value: sceneModel.activeScene ? sceneModel.activeScene.boneTone : ColorUtils.defaultBoneTone
+                        value: sceneModel.activeScene ? sceneModel.activeScene.boneTone : Bvh3DModel.defaultBoneTone()
                         enabled: sceneModel.activeScene
                                  && sceneModel.activeScene.boneColorMode === root.boneModeToneOffset
                         helpText: qsTr("Same hue as the joint; drag to adjust bone lightness.")

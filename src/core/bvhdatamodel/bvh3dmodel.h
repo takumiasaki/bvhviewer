@@ -25,7 +25,6 @@ class Bvh3DModel : public QObject {
     Q_PROPERTY(BoneColorMode boneColorMode READ boneColorMode WRITE setBoneColorMode NOTIFY boneColorModeChanged)
     Q_PROPERTY(int boneTone READ boneTone WRITE setBoneTone NOTIFY boneToneChanged)
     Q_PROPERTY(QColor customBoneColor READ customBoneColor WRITE setCustomBoneColor NOTIFY customBoneColorChanged)
-    Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(QString displayName READ displayName WRITE setDisplayName NOTIFY displayNameChanged)
     Q_PROPERTY(bool valid READ isValid NOTIFY bvhFileChanged)
 
@@ -37,7 +36,10 @@ public:
     };
     Q_ENUM(BoneColorMode)
 
-    static QColor colorFromTone(const QColor& jointColor, int tone);
+    static constexpr int DefaultBoneTone = -25;
+
+    Q_INVOKABLE static QColor colorFromTone(const QColor& jointColor, int tone);
+    Q_INVOKABLE static int defaultBoneTone();
 
     explicit Bvh3DModel(QObject* parent = nullptr);
     explicit Bvh3DModel(std::shared_ptr<BvhFile> bvhFile, QObject* parent = nullptr);
@@ -74,9 +76,6 @@ public:
     QColor customBoneColor() const { return m_customBoneColor; }
     void setCustomBoneColor(const QColor& color);
 
-    QColor color() const { return m_jointColor; }
-    void setColor(const QColor& color);
-
     QString displayName() const { return m_displayName; }
     void setDisplayName(const QString& name);
 
@@ -96,7 +95,6 @@ signals:
     void boneColorModeChanged();
     void boneToneChanged();
     void customBoneColorChanged();
-    void colorChanged();
     void displayNameChanged();
     void attachFailed(const QString& reason);
 
@@ -124,7 +122,7 @@ private:
     QColor m_boneColor = Qt::white;
     QColor m_customBoneColor = Qt::white;
     BoneColorMode m_boneColorMode = ToneOffset;
-    int m_boneTone = -25;
+    int m_boneTone = DefaultBoneTone;
     QString m_displayName;
 };
 

@@ -26,7 +26,6 @@ class BvhSkeletonItem : public QObject {
     Q_PROPERTY(Bvh3DModel::BoneColorMode boneColorMode READ boneColorMode WRITE setBoneColorMode NOTIFY boneColorModeChanged)
     Q_PROPERTY(int boneTone READ boneTone WRITE setBoneTone NOTIFY boneToneChanged)
     Q_PROPERTY(QColor customBoneColor READ customBoneColor WRITE setCustomBoneColor NOTIFY customBoneColorChanged)
-    Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(int paletteIndex READ paletteIndex CONSTANT)
     Q_PROPERTY(QString displayName READ displayName NOTIFY displayNameChanged)
     Q_PROPERTY(QUrl source READ source CONSTANT)
@@ -66,9 +65,6 @@ public:
     QColor customBoneColor() const;
     void setCustomBoneColor(const QColor& color);
 
-    QColor color() const;
-    void setColor(const QColor& color);
-
     int paletteIndex() const { return m_paletteIndex; }
 
     QString displayName() const;
@@ -88,7 +84,6 @@ signals:
     void boneColorModeChanged();
     void boneToneChanged();
     void customBoneColorChanged();
-    void colorChanged();
     void displayNameChanged();
     void validChanged();
     void frameCountChanged();

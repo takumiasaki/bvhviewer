@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import "SceneColorUtils.js" as ColorUtils
+import BvhScene 1.0
 
 Slider {
     id: root
@@ -16,8 +16,8 @@ Slider {
 
     implicitHeight: 24
 
-    readonly property color darkColor: ColorUtils.boneColorFromTone(jointColor, from)
-    readonly property color lightColor: ColorUtils.boneColorFromTone(jointColor, to)
+    readonly property color darkColor: Bvh3DModel.colorFromTone(jointColor, from)
+    readonly property color lightColor: Bvh3DModel.colorFromTone(jointColor, to)
 
     HoverHandler {
         id: barHover

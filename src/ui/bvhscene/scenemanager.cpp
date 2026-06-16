@@ -19,8 +19,6 @@ const QColor kPalette[] = {
     QColor(QStringLiteral("#FFD464")),
 };
 constexpr int kPaletteSize = sizeof(kPalette) / sizeof(kPalette[0]);
-constexpr int kDefaultBoneTone = -25;
-
 } // namespace
 
 SceneManager::SceneManager(QObject* parent)
@@ -188,9 +186,9 @@ bool SceneManager::loadScene(const QUrl& fileUrl)
     model->setDisplayName(info.completeBaseName());
     const int paletteIndex = static_cast<int>(m_entries.size());
     const QColor jointColor = defaultColorForPaletteIndex(paletteIndex);
-    model->setBoneTone(kDefaultBoneTone);
+    model->setBoneTone(Bvh3DModel::defaultBoneTone());
     model->setJointColor(jointColor);
-    model->setCustomBoneColor(Bvh3DModel::colorFromTone(jointColor, kDefaultBoneTone));
+    model->setCustomBoneColor(Bvh3DModel::colorFromTone(jointColor, Bvh3DModel::defaultBoneTone()));
     model->setBoneColorMode(Bvh3DModel::ToneOffset);
 
     const int insertIndex = paletteIndex;
@@ -499,8 +497,8 @@ void SceneManager::resetSkeletonColors(int index)
     }
 
     const QColor jointColor = defaultColorForPaletteIndex(m_entries.at(static_cast<size_t>(index)).paletteIndex);
-    item->setBoneTone(kDefaultBoneTone);
-    item->setCustomBoneColor(Bvh3DModel::colorFromTone(jointColor, kDefaultBoneTone));
+    item->setBoneTone(Bvh3DModel::defaultBoneTone());
+    item->setCustomBoneColor(Bvh3DModel::colorFromTone(jointColor, Bvh3DModel::defaultBoneTone()));
     item->setJointColor(jointColor);
     item->setBoneColorMode(Bvh3DModel::ToneOffset);
 }

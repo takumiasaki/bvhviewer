@@ -72,7 +72,7 @@ BVH File Model（`src/core/bvhfile`）が保持するスケルトン構造とモ
 | 要件 ID | 内容 | 3D Data Model 層での対応 |
 |---------|------|--------------------------|
 | F03 | スケルトン 3D 描画 | JointList / BoneList を生成。End Site を仮想ジョイントとして含める。 |
-| F03 | 色分け・表示/非表示 | `Bvh3DModel::color`, `visible` プロパティ。リストモデル更新は visible に関わらず行い、QML 側で描画を抑制する。 |
+| F03 | 色分け・表示/非表示 | `jointColor` / `boneColor`（effective）/ `boneColorMode` / `boneTone` / `customBoneColor` と `visible`。リストモデル更新は visible に関わらず行い、QML 側で描画を抑制する。詳細は [スケルトン色選択仕様](../requirements/skeleton-colors.md)。 |
 | F04 | 複数 BVH 併置 | 本層は BVH ローカル座標のみ出力。シーンオフセットは Scene Manager が QML 親 Node に設定。 |
 | F08–F09 | 再生・シーク | Scene Manager が `setFrame()` を呼ぶ。本層は受動的に Pose を更新。 |
 | F11 | 複数モーション同期 | 各 `Bvh3DModel` が同一フレーム索引で独立更新。 |
@@ -311,11 +311,21 @@ class Bvh3DModel : public QObject {
     Q_PROPERTY(double frameTime READ frameTime NOTIFY bvhFileChanged)
     Q_PROPERTY(int currentFrame READ currentFrame NOTIFY currentFrameChanged)
     Q_PROPERTY(bool visible READ visible WRITE setVisible NOTIFY visibleChanged)
-    Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
+    Q_PROPERTY(QColor jointColor READ jointColor WRITE setJointColor NOTIFY jointColorChanged)
+    Q_PROPERTY(QColor boneColor READ boneColor NOTIFY boneColorChanged)
+    Q_PROPERTY(BoneColorMode boneColorMode READ boneColorMode WRITE setBoneColorMode NOTIFY boneColorModeChanged)
+    Q_PROPERTY(int boneTone READ boneTone WRITE setBoneTone NOTIFY boneToneChanged)
+    Q_PROPERTY(QColor customBoneColor READ customBoneColor WRITE setCustomBoneColor NOTIFY customBoneColorChanged)
     Q_PROPERTY(QString displayName READ displayName WRITE setDisplayName NOTIFY displayNameChanged)
     Q_PROPERTY(bool valid READ isValid NOTIFY bvhFileChanged)
 
 public:
+    enum BoneColorMode { SameAsJoint, ToneOffset, Custom };
+    Q_ENUM(BoneColorMode)
+
+    static constexpr int DefaultBoneTone = -25;
+    Q_INVOKABLE static QColor colorFromTone(const QColor& jointColor, int tone);
+    Q_INVOKABLE static int defaultBoneTone();
     explicit Bvh3DModel(QObject* parent = nullptr);
     explicit Bvh3DModel(std::shared_ptr<BvhFile> bvhFile, QObject* parent = nullptr);
 
@@ -341,7 +351,11 @@ signals:
     void currentFrameChanged();
     void poseUpdated();          // リスト内容更新完了（モデル dataChanged 後）
     void visibleChanged();
-    void colorChanged();
+    void jointColorChanged();
+    void boneColorChanged();
+    void boneColorModeChanged();
+    void boneToneChanged();
+    void customBoneColorChanged();
     void displayNameChanged();
     void attachFailed(const QString& reason);  // attach 時の検証失敗
 

@@ -76,7 +76,7 @@ void BvhSkeletonItem::setBoneColorMode(Bvh3DModel::BoneColorMode mode)
 
 int BvhSkeletonItem::boneTone() const
 {
-    return m_model ? m_model->boneTone() : -25;
+    return m_model ? m_model->boneTone() : Bvh3DModel::defaultBoneTone();
 }
 
 void BvhSkeletonItem::setBoneTone(int tone)
@@ -95,18 +95,6 @@ void BvhSkeletonItem::setCustomBoneColor(const QColor& color)
 {
     if (m_model) {
         m_model->setCustomBoneColor(color);
-    }
-}
-
-QColor BvhSkeletonItem::color() const
-{
-    return jointColor();
-}
-
-void BvhSkeletonItem::setColor(const QColor& color)
-{
-    if (m_model) {
-        m_model->setColor(color);
     }
 }
 
@@ -152,7 +140,6 @@ void BvhSkeletonItem::connectModelSignals()
     connect(m_model, &Bvh3DModel::boneColorModeChanged, this, &BvhSkeletonItem::boneColorModeChanged);
     connect(m_model, &Bvh3DModel::boneToneChanged, this, &BvhSkeletonItem::boneToneChanged);
     connect(m_model, &Bvh3DModel::customBoneColorChanged, this, &BvhSkeletonItem::customBoneColorChanged);
-    connect(m_model, &Bvh3DModel::colorChanged, this, &BvhSkeletonItem::colorChanged);
     connect(m_model, &Bvh3DModel::displayNameChanged, this, &BvhSkeletonItem::displayNameChanged);
     connect(m_model, &Bvh3DModel::bvhFileChanged, this, &BvhSkeletonItem::validChanged);
     connect(m_model, &Bvh3DModel::bvhFileChanged, this, &BvhSkeletonItem::frameCountChanged);

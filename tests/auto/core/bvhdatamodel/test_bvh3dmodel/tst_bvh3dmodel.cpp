@@ -230,11 +230,11 @@ void TestBvh3DModel::testSkeletonColors()
     model.setBoneColorMode(Bvh3DModel::ToneOffset);
     QCOMPARE(model.boneTone(), -25);
 
-    model.setColor(jointColor);
+    model.setJointColor(jointColor);
+    model.setBoneColorMode(Bvh3DModel::SameAsJoint);
     QCOMPARE(model.boneColorMode(), Bvh3DModel::SameAsJoint);
     QCOMPARE(model.jointColor(), jointColor);
     QCOMPARE(model.boneColor(), jointColor);
-    QCOMPARE(model.color(), jointColor);
 }
 
 QTEST_MAIN(TestBvh3DModel)
