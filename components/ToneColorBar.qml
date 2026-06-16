@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import BvhScene 1.0
+import BvhScene
 
 Slider {
     id: root

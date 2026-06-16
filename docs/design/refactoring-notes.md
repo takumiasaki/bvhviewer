@@ -4,19 +4,14 @@
 
 ---
 
-## 1. `SceneManager.playing` を QML 側へ移す
+## 1. ~~`SceneManager.playing` を QML 側へ移す~~（実施済み）
 
-### 現状
+### 実施内容（2026-06）
 
-- `playing` は `Main.qml` のみが参照（Play/Pause ラベル、Reset ボタン有効化、`Timer.running`、末尾到達時の停止）。
-- 再生ループ自体は QML の `Timer` が `animationTime` を進めている。C++ は `m_playing` を保持するだけで、ポーズ更新などには使っていない。
-- `play()` / `pause()` / `toggle()` は C++ にあるが、中身は主に「フレーム数チェック」「末尾なら先頭へ戻す」＋フラグ更新。
-
-### 方針案
-
-- `Main.qml` の `animationController`（または同等）に `property bool playing` を置く。
-- `Timer.running` と UI バインディングをそちらへ移す。
-- C++ から `playing` プロパティと `play()` / `pause()` / `toggle()` を削除するか、再生開始条件だけ `Q_INVOKABLE bool canPlay()` 等に縮小する。
+- `playing` 状態と再生ループ（`Timer`）を `components/TimelineBar.qml` に集約。
+- `play()` / `pause()` / `toggle()` のロジックも QML 側へ移行（末尾到達時の先頭リセット、再生不可条件のチェック含む）。
+- C++ `SceneManager` から `playing` プロパティと `play()` / `pause()` / `toggle()` を削除。
+- シーン全削除時（`frameCount == 0`）は `TimelineBar` が `playing = false` にする。
 
 ### 残すもの
 
@@ -24,8 +19,8 @@
 
 ### 関連
 
-- [scene-manager.md](./scene-manager.md) — 設計上は「再生状態」を SceneManager 責務としているが、実装は QML 駆動が先行している。
-- [animation-controls.md](../requirements/animation-controls.md)
+- [scene-manager.md](./scene-manager.md) — 設計ドキュメントは「再生状態を SceneManager 管理」の記載が残っている。§3 参照。
+- [animation-controls.md](../requirements/animation-controls.md) — 要件上の `playing` は QML（TimelineBar）が保持。
 
 ---
 
@@ -85,5 +80,5 @@
 
 ## 3. その他（メモ程度）
 
-- **設計ドキュメントと実装の差分**: `scene-manager.md` は `NumberAnimation` 駆動を記載しているが、実装は `Timer` + `animationTime` 積算。リファクタ時にドキュメントを実装に合わせてよい。
-- **`architecture.md`**: 「Scene Manager が再生状態を管理」とあるが、§1 の整理後は「タイムライン（秒・フレーム）は C++、再生/停止フラグは QML」に書き換え候補。
+- **設計ドキュメントと実装の差分**: `scene-manager.md` は `NumberAnimation` 駆動・`SceneManager.playing` を記載しているが、実装は `TimelineBar.qml` の `Timer` + `animationTime` 積算、再生フラグは QML 側。リファクタ時にドキュメントを実装に合わせてよい。
+- **`architecture.md`**: 「Scene Manager が再生状態を管理」とあるが、§1 実施後は「タイムライン（秒・フレーム）は C++、再生/停止フラグは QML（TimelineBar）」に書き換え候補。

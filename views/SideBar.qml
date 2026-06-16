@@ -2,14 +2,15 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import BvhScene 1.0
+import BvhViewer
+import BvhScene
 
 Rectangle {
     id: sidebar
     color: palette.window
     border.color: palette.mid
 
-    required property SceneManager sceneModel
+    required property SceneManager sceneManager
 
     signal newModelRequest()
 
@@ -38,7 +39,7 @@ Rectangle {
             ListView {
                 id: sceneListView
                 anchors.fill: parent
-                model: sceneModel
+                model: sceneManager
                 clip: true
                 spacing: 8
 
@@ -75,8 +76,8 @@ Rectangle {
                     width: sceneListView.width
                     height: sceneListView.delegateHeight
                     radius: 6
-                    color: index === sidebar.sceneModel.activeIndex ? palette.highlight : palette.base
-                    border.color: index === sidebar.sceneModel.activeIndex ? palette.highlight : palette.mid
+                    color: index === sidebar.sceneManager.activeIndex ? palette.highlight : palette.base
+                    border.color: index === sidebar.sceneManager.activeIndex ? palette.highlight : palette.mid
                     border.width: 1
 
                     RowLayout {
@@ -104,7 +105,7 @@ Rectangle {
                             Label {
                                 anchors.fill: parent
                                 text: sceneRow.name
-                                color: index === sidebar.sceneModel.activeIndex ? palette.highlightedText : palette.text
+                                color: index === sidebar.sceneManager.activeIndex ? palette.highlightedText : palette.text
                                 elide: Text.ElideRight
                                 verticalAlignment: Text.AlignVCenter
                             }
@@ -126,7 +127,7 @@ Rectangle {
 
         ActiveScenePanel {
             id: activeScenePanel
-            sceneModel: sidebar.sceneModel
+            sceneManager: sidebar.sceneManager
         }
     }
 }

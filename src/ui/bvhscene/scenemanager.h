@@ -20,7 +20,6 @@ class SceneManager : public QAbstractListModel {
     Q_PROPERTY(BvhSkeletonItem* activeScene READ activeScene NOTIFY activeIndexChanged)
     Q_PROPERTY(int sceneCount READ sceneCount NOTIFY sceneCountChanged)
 
-    Q_PROPERTY(bool playing READ isPlaying WRITE setPlaying NOTIFY playingChanged)
     Q_PROPERTY(qreal animationTime READ animationTime WRITE setAnimationTime NOTIFY animationTimeChanged)
     Q_PROPERTY(int currentFrame READ currentFrame WRITE setCurrentFrame NOTIFY currentFrameChanged)
     Q_PROPERTY(int frameCount READ frameCount NOTIFY frameCountChanged)
@@ -56,9 +55,6 @@ public:
     BvhSkeletonItem* activeScene() const;
     int sceneCount() const { return static_cast<int>(m_entries.size()); }
 
-    bool isPlaying() const { return m_playing; }
-    void setPlaying(bool playing);
-
     qreal animationTime() const { return m_animationTime; }
     void setAnimationTime(qreal time);
 
@@ -81,14 +77,9 @@ public:
     Q_INVOKABLE QColor colorForIndex(int index) const;
     Q_INVOKABLE void resetSkeletonColors(int index);
 
-    Q_INVOKABLE void play();
-    Q_INVOKABLE void pause();
-    Q_INVOKABLE void toggle();
-
 signals:
     void activeIndexChanged();
     void sceneCountChanged();
-    void playingChanged();
     void animationTimeChanged();
     void currentFrameChanged();
     void frameCountChanged();
@@ -120,7 +111,6 @@ private:
 
     std::vector<SkeletonEntry> m_entries;
     int m_activeIndex = -1;
-    bool m_playing = false;
     qreal m_animationTime = 0.0;
     int m_currentFrame = -1;
     QString m_lastError;

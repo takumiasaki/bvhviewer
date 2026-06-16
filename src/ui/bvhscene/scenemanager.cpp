@@ -238,7 +238,6 @@ bool SceneManager::removeScene(int index)
 
     if (m_entries.empty()) {
         setActiveIndex(-1);
-        setPlaying(false);
         m_currentFrame = -1;
         m_animationTime = 0.0;
         emit currentFrameChanged();
@@ -265,15 +264,6 @@ BvhSkeletonItem* SceneManager::skeletonAt(int index) const
         return nullptr;
     }
     return m_entries.at(static_cast<size_t>(index)).item;
-}
-
-void SceneManager::setPlaying(bool playing)
-{
-    if (m_playing == playing) {
-        return;
-    }
-    m_playing = playing;
-    emit playingChanged();
 }
 
 void SceneManager::setFloorShadowsEnabled(bool enabled)
@@ -309,33 +299,6 @@ void SceneManager::setCurrentFrame(int frame)
     const int maxFrame = qMax(0, frameCount() - 1);
     const int clampedFrame = qBound(0, frame, maxFrame);
     setAnimationTime(static_cast<qreal>(clampedFrame) * ft);
-}
-
-void SceneManager::play()
-{
-    if (frameCount() <= 1 || duration() <= 0.0) {
-        return;
-    }
-
-    if (m_animationTime >= duration()) {
-        setAnimationTime(0.0);
-    }
-
-    setPlaying(true);
-}
-
-void SceneManager::pause()
-{
-    setPlaying(false);
-}
-
-void SceneManager::toggle()
-{
-    if (m_playing) {
-        pause();
-    } else {
-        play();
-    }
 }
 
 void SceneManager::relayoutSceneOffsets()

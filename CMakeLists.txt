@@ -16,19 +16,24 @@ add_subdirectory(src/core/bvhfile)
 add_subdirectory(src/core/bvhdatamodel)
 add_subdirectory(src/ui/bvhscene)
 
-set_source_files_properties(SemanticColors.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(theme/SemanticColors.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(app_bvhviewer
     URI BvhViewer
     VERSION 1.0
     QML_FILES
         Main.qml
-        SideBar.qml
-        Bvh3DView.qml
-        ActiveScenePanel.qml
-        DualColorSwatch.qml
-        ToneColorBar.qml
-        SemanticColors.qml
+        views/SideBar.qml
+        views/Bvh3DView.qml
+        views/ActiveScenePanel.qml
+        views/OffsetTab.qml
+        views/AppearanceTab.qml
+        views/RemoveTab.qml
+        components/DualColorSwatch.qml
+        components/ToneColorBar.qml
+        components/ColorSwatch.qml
+        components/TimelineBar.qml
+        theme/SemanticColors.qml
     DEPENDENCIES
         TARGET lib_ui_bvhscene
 )

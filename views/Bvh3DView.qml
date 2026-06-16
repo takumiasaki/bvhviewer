@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick3D
 import QtQuick3D.Helpers
-import BvhScene 1.0
+
+import BvhScene
 
 Item {
     id: root
