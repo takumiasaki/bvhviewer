@@ -35,21 +35,6 @@ Rectangle {
         }
     }
 
-    function selectScene(index, tab) {
-        if (index < 0 || index >= sceneManager.count()) {
-            return
-        }
-
-        if (sceneManager.activeIndex !== index) {
-            sceneManager.activeIndex = index
-        }
-        currentTab = tab
-    }
-
-    function deselectScene() {
-        sceneManager.activeIndex = -1
-    }
-
     function openJointColorDialog() {
         if (!sceneManager.activeScene) {
             return
@@ -121,7 +106,7 @@ Rectangle {
                 text: "\u00d7"
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Deselect scene")
-                onClicked: root.deselectScene()
+                onClicked: sceneManager.activeIndex = -1
             }
         }
 

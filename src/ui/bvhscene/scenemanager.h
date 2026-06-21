@@ -8,6 +8,8 @@
 
 #include <QtQml/qqmlregistration.h>
 
+#include "viewportsettings.h"
+
 class Bvh3DModel;
 class BvhFile;
 class BvhSkeletonItem;
@@ -28,7 +30,7 @@ class SceneManager : public QAbstractListModel {
 
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
-    Q_PROPERTY(bool floorShadowsEnabled READ floorShadowsEnabled WRITE setFloorShadowsEnabled NOTIFY floorShadowsEnabledChanged)
+    Q_PROPERTY(ViewportSettings* viewportSettings READ viewportSettings CONSTANT)
 
 public:
     enum SceneRoles {
@@ -67,8 +69,7 @@ public:
 
     QString lastError() const { return m_lastError; }
 
-    bool floorShadowsEnabled() const { return m_floorShadowsEnabled; }
-    void setFloorShadowsEnabled(bool enabled);
+    ViewportSettings* viewportSettings() const { return m_viewportSettings; }
 
     Q_INVOKABLE bool loadScene(const QUrl& fileUrl);
     Q_INVOKABLE bool removeScene(int index);
@@ -86,7 +87,6 @@ signals:
     void frameTimeChanged();
     void durationChanged();
     void lastErrorChanged();
-    void floorShadowsEnabledChanged();
 
 private:
     struct SkeletonEntry {
@@ -114,7 +114,7 @@ private:
     qreal m_animationTime = 0.0;
     int m_currentFrame = -1;
     QString m_lastError;
-    bool m_floorShadowsEnabled = true;
+    ViewportSettings* m_viewportSettings = nullptr;
 };
 
 #endif // SCENEMANAGER_H

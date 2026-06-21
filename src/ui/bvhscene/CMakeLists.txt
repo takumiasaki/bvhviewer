@@ -10,6 +10,8 @@ qt_add_qml_module(lib_ui_bvhscene
         bvhskeletonitem.cpp
         skeletoncolorutils.h
         skeletoncolorutils.cpp
+        viewportsettings.h
+        viewportsettings.cpp
         bvhscene_foreign_types.h
 )
 

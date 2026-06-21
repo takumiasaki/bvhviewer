@@ -47,8 +47,8 @@ ApplicationWindow {
             Action {
                 text: qsTr("Show &Floor Shadows")
                 checkable: true
-                checked: sceneManager.floorShadowsEnabled
-                onTriggered: sceneManager.floorShadowsEnabled = checked
+                checked: sceneManager.viewportSettings.floorShadowsEnabled
+                onTriggered: sceneManager.viewportSettings.floorShadowsEnabled = checked
             }
         }
     }

@@ -7,6 +7,7 @@ import BvhScene
 Item {
     id: root
     property SceneManager sceneManager
+    readonly property ViewportSettings viewportSettings: sceneManager ? sceneManager.viewportSettings : null
 
     // Built-in #Sphere / #Cylinder meshes are 100 units along each axis.
     readonly property real builtinMeshSize: 100
@@ -48,7 +49,7 @@ Item {
             ambientColor: Qt.rgba(0.0, 0.0, 0.0, 1.0)
             brightness: 1.8
             eulerRotation: Qt.vector3d(-45, 0, 0)
-            castsShadow: sceneManager.floorShadowsEnabled
+            castsShadow: root.viewportSettings.floorShadowsEnabled
             shadowMapQuality: Light.ShadowMapQualityVeryHigh
             shadowMapFar: 1200
             pcfFactor: 0.5
@@ -62,7 +63,7 @@ Item {
             }
             materials: [
                 PrincipledMaterial {
-                    baseColor: "#50505a"
+                    baseColor: root.viewportSettings.groundColor
                     roughness: 1.0
                 }
             ]
@@ -110,7 +111,7 @@ Item {
                                 (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize,
                                 (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize,
                                 (model.isEndSite ? root.endSiteDiameter : root.jointDiameter) / root.builtinMeshSize)
-                            castsShadows: sceneManager.floorShadowsEnabled
+                            castsShadows: root.viewportSettings.floorShadowsEnabled
                             receivesShadows: false
                             depthBias: 0.15
                             materials: [
@@ -134,7 +135,7 @@ Item {
                                 root.boneDiameter / root.builtinMeshSize,
                                 (model.length > 0 ? model.length : 0.01) / root.builtinMeshSize,
                                 root.boneDiameter / root.builtinMeshSize)
-                            castsShadows: sceneManager.floorShadowsEnabled
+                            castsShadows: root.viewportSettings.floorShadowsEnabled
                             receivesShadows: false
                             depthBias: 0.15
                             materials: [

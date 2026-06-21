@@ -26,6 +26,7 @@ qt_add_qml_module(app_bvhviewer
         views/SideBar.qml
         views/Bvh3DView.qml
         views/ActiveScenePanel.qml
+        views/SceneSettingsPanel.qml
         views/OffsetTab.qml
         views/AppearanceTab.qml
         views/RemoveTab.qml

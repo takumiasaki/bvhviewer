@@ -1,5 +1,6 @@
 #include "scenemanager.h"
 
+#include "viewportsettings.h"
 #include "bvhskeletonitem.h"
 #include "bvh3dmodel.h"
 #include "bvhfile.h"
@@ -23,6 +24,7 @@ constexpr int kPaletteSize = sizeof(kPalette) / sizeof(kPalette[0]);
 
 SceneManager::SceneManager(QObject* parent)
     : QAbstractListModel(parent)
+    , m_viewportSettings(new ViewportSettings(this))
 {
 }
 
@@ -264,15 +266,6 @@ BvhSkeletonItem* SceneManager::skeletonAt(int index) const
         return nullptr;
     }
     return m_entries.at(static_cast<size_t>(index)).item;
-}
-
-void SceneManager::setFloorShadowsEnabled(bool enabled)
-{
-    if (m_floorShadowsEnabled == enabled) {
-        return;
-    }
-    m_floorShadowsEnabled = enabled;
-    emit floorShadowsEnabledChanged();
 }
 
 void SceneManager::setAnimationTime(qreal time)
