@@ -118,7 +118,7 @@ ColumnLayout {
             Layout.column: 2
             Layout.fillWidth: true
             jointColor: sceneManager.activeScene ? sceneManager.activeScene.jointColor : "white"
-            value: sceneManager.activeScene ? sceneManager.activeScene.boneTone : Bvh3DModel.defaultBoneTone()
+            value: sceneManager.activeScene ? sceneManager.activeScene.boneTone : SkeletonColorUtils.defaultBoneTone()
             enabled: sceneManager.activeScene
                      && sceneManager.activeScene.boneColorMode === root.boneModeToneOffset
             helpText: qsTr("Same hue as the joint; drag to adjust bone lightness.")

@@ -8,6 +8,8 @@ qt_add_qml_module(lib_ui_bvhscene
         scenemanager.cpp
         bvhskeletonitem.h
         bvhskeletonitem.cpp
+        skeletoncolorutils.h
+        skeletoncolorutils.cpp
         bvhscene_foreign_types.h
 )
 

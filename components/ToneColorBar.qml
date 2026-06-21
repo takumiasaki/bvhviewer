@@ -16,8 +16,8 @@ Slider {
 
     implicitHeight: 24
 
-    readonly property color darkColor: Bvh3DModel.colorFromTone(jointColor, from)
-    readonly property color lightColor: Bvh3DModel.colorFromTone(jointColor, to)
+    readonly property color darkColor: SkeletonColorUtils.colorFromTone(jointColor, from)
+    readonly property color lightColor: SkeletonColorUtils.colorFromTone(jointColor, to)
 
     HoverHandler {
         id: barHover
