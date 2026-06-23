@@ -55,20 +55,36 @@ Item {
             pcfFactor: 0.5
         }
 
+        PrincipledMaterial {
+            id: groundMaterial
+            baseColor: root.viewportSettings.groundColor
+            roughness: 1.0
+        }
+
         Model {
-            id: gridPlane
-            geometry: PlaneGeometry {
-                width: 2000
-                height: 2000
-            }
-            materials: [
-                PrincipledMaterial {
-                    baseColor: root.viewportSettings.groundColor
-                    roughness: 1.0
-                }
-            ]
-            position: Qt.vector3d(0, 0, 0)
-            eulerRotation: Qt.vector3d(-90, 0, 0)
+            id: groundRectangle
+            visible: root.viewportSettings.groundShape === ViewportSettings.Rectangle
+            source: "#Cube"
+            scale: Qt.vector3d(
+                root.viewportSettings.groundSizeX / root.builtinMeshSize,
+                root.viewportSettings.groundSizeY / root.builtinMeshSize,
+                root.viewportSettings.groundSizeZ / root.builtinMeshSize)
+            materials: [groundMaterial]
+            position: Qt.vector3d(0, -root.viewportSettings.groundSizeY / 2, 0)
+            castsShadows: false
+            receivesShadows: true
+        }
+
+        Model {
+            id: groundEllipse
+            visible: root.viewportSettings.groundShape === ViewportSettings.Ellipse
+            source: "#Cylinder"
+            scale: Qt.vector3d(
+                root.viewportSettings.groundSizeX / root.builtinMeshSize,
+                root.viewportSettings.groundSizeY / root.builtinMeshSize,
+                root.viewportSettings.groundSizeZ / root.builtinMeshSize)
+            materials: [groundMaterial]
+            position: Qt.vector3d(0, -root.viewportSettings.groundSizeY / 2, 0)
             castsShadows: false
             receivesShadows: true
         }
