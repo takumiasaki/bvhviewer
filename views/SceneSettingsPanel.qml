@@ -214,7 +214,7 @@ ColumnLayout {
                 wrapMode: Text.WordWrap
                 text: qsTr("Auto: the camera follows the target only while playback is running.")
                 color: palette.placeholderText
-                font.pixelSize: Math.max(11, font.pixelSize - 1)
+                font.pixelSize: Math.max(11, Application.font.pixelSize - 1)
             }
 
             RowLayout {

@@ -36,6 +36,18 @@ Rectangle {
         sceneManager.activeIndex = -1
     }
 
+    function toggleSceneAt(index, tab) {
+        if (index < 0 || index >= sceneManager.count()) {
+            return
+        }
+
+        if (sceneManager.activeIndex === index) {
+            deselectScene()
+        } else {
+            selectSceneAt(index, tab)
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 8
@@ -94,9 +106,8 @@ Rectangle {
                                   + (sceneListView.count - 1) * sceneListView.spacing
                                 : 0))
 
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: sidebar.deselectScene()
+                            TapHandler {
+                                onTapped: sidebar.deselectScene()
                             }
                         }
 
@@ -143,9 +154,8 @@ Rectangle {
                                         verticalAlignment: Text.AlignVCenter
                                     }
 
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: sidebar.selectSceneAt(sceneRow.index, 0)
+                                    TapHandler {
+                                        onTapped: sidebar.toggleSceneAt(sceneRow.index, 0)
                                     }
                                 }
                             }
