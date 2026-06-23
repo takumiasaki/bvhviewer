@@ -25,6 +25,7 @@ constexpr int kPaletteSize = sizeof(kPalette) / sizeof(kPalette[0]);
 SceneManager::SceneManager(QObject* parent)
     : QAbstractListModel(parent)
     , m_viewportSettings(new ViewportSettings(this))
+    , m_cameraSettings(new CameraSettings(this))
 {
 }
 
@@ -96,6 +97,9 @@ void SceneManager::setActiveIndex(int index)
 
     m_activeIndex = index;
     emit activeIndexChanged();
+    if (m_playing && m_cameraSettings && m_cameraSettings->mode() == CameraSettings::Auto) {
+        emit framingRefitRequested();
+    }
 }
 
 BvhSkeletonItem* SceneManager::activeScene() const
@@ -294,6 +298,91 @@ void SceneManager::setCurrentFrame(int frame)
     setAnimationTime(static_cast<qreal>(clampedFrame) * ft);
 }
 
+void SceneManager::setPlaying(bool playing)
+{
+    if (m_playing == playing) {
+        return;
+    }
+    m_playing = playing;
+    emit playingChanged();
+}
+
+PoseUtils::PoseBounds SceneManager::computeFramingBounds(qreal jointRadius, qreal endSiteRadius) const
+{
+    PoseUtils::PoseBounds merged;
+
+    const bool hasActiveSelection = m_activeIndex >= 0 && m_activeIndex < static_cast<int>(m_entries.size());
+
+    for (int i = 0; i < static_cast<int>(m_entries.size()); ++i) {
+        const SkeletonEntry& entry = m_entries.at(static_cast<size_t>(i));
+        BvhSkeletonItem* item = entry.item;
+        if (!item || !item->visible() || !item->isValid()) {
+            continue;
+        }
+
+        if (hasActiveSelection && i != m_activeIndex) {
+            continue;
+        }
+
+        Bvh3DModel* model = item->model();
+        if (!model) {
+            continue;
+        }
+
+        PoseUtils::PoseBounds localBounds =
+            PoseUtils::computePoseBounds(model->joints(),
+                                         static_cast<float>(jointRadius),
+                                         static_cast<float>(endSiteRadius),
+                                         PoseUtils::kDefaultFramingMargin);
+
+        if (!localBounds.valid) {
+            continue;
+        }
+
+        const QVector3D offset = item->sceneOffset();
+        localBounds.min += offset;
+        localBounds.max += offset;
+        merged = PoseUtils::mergePoseBounds(merged, localBounds);
+    }
+
+    return merged;
+}
+
+bool SceneManager::hasFramingTarget(qreal jointRadius, qreal endSiteRadius) const
+{
+    return computeFramingBounds(jointRadius, endSiteRadius).valid;
+}
+
+QVector3D SceneManager::framingCenter(qreal jointRadius, qreal endSiteRadius) const
+{
+    return PoseUtils::boundsCenter(computeFramingBounds(jointRadius, endSiteRadius));
+}
+
+qreal SceneManager::framingRadius(qreal jointRadius, qreal endSiteRadius) const
+{
+    return PoseUtils::framingRadius(computeFramingBounds(jointRadius, endSiteRadius));
+}
+
+qreal SceneManager::framingDistance(qreal jointRadius,
+                                    qreal endSiteRadius,
+                                    qreal fovDegrees,
+                                    qreal aspectRatio,
+                                    qreal pitchDegrees) const
+{
+    const PoseUtils::PoseBounds bounds = computeFramingBounds(jointRadius, endSiteRadius);
+    return PoseUtils::framingDistance(bounds,
+                                      static_cast<float>(fovDegrees),
+                                      static_cast<float>(aspectRatio),
+                                      static_cast<float>(pitchDegrees));
+}
+
+void SceneManager::notifyFramingTargetIfAutoPlaying()
+{
+    if (m_playing && m_cameraSettings && m_cameraSettings->mode() == CameraSettings::Auto) {
+        emit framingTargetChanged();
+    }
+}
+
 void SceneManager::relayoutSceneOffsets()
 {
     const int size = static_cast<int>(m_entries.size());
@@ -401,7 +490,18 @@ void SceneManager::connectSkeletonSignals(BvhSkeletonItem* item)
         if (item->visible()) {
             syncPoseForSkeleton(item);
         }
+        if (m_playing && m_cameraSettings && m_cameraSettings->mode() == CameraSettings::Auto) {
+            emit framingRefitRequested();
+        }
     });
+    connect(item, &BvhSkeletonItem::sceneOffsetChanged, this, [this]() {
+        notifyFramingTargetIfAutoPlaying();
+    });
+    if (item->model()) {
+        connect(item->model(), &Bvh3DModel::poseUpdated, this, [this]() {
+            notifyFramingTargetIfAutoPlaying();
+        });
+    }
     connect(item, &BvhSkeletonItem::jointColorChanged, this, &SceneManager::handleSkeletonUpdated);
     connect(item, &BvhSkeletonItem::boneColorChanged, this, &SceneManager::handleSkeletonUpdated);
     connect(item, &BvhSkeletonItem::boneColorModeChanged, this, &SceneManager::handleSkeletonUpdated);

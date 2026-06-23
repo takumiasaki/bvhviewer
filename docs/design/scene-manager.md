@@ -322,7 +322,7 @@ src/ui/bvhscene/
 
 | 機能 | 拡張方法 |
 |------|----------|
-| カメラ自動追従 | `SceneManager` に `cameraTarget` プロパティ追加、QML バインディング |
+| カメラ自動追従 | `CameraSettings` + `SceneManager::framingCenter` 等（[camera-controls.md](../requirements/camera-controls.md)） |
 | 照明設定 | `lightBrightness` 等を SceneManager 経由で Bvh3DView に公開 |
 | 併置モード選択 | `LayoutMode` enum（Overlap / Spaced / Grid） |
 | ワールド座標ヒットテスト | QML `Node` から `mapPositionToScene` 結果を SceneManager へ通知 |

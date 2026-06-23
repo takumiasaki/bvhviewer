@@ -9,7 +9,6 @@ Rectangle {
 
     required property SceneManager sceneManager
 
-    property bool playing: false
     property bool showFrameNumbers: false
 
     visible: sceneManager.frameCount > 0
@@ -28,15 +27,15 @@ Rectangle {
         if (sceneManager.animationTime >= sceneManager.duration) {
             sceneManager.animationTime = 0
         }
-        playing = true
+        sceneManager.playing = true
     }
 
     function pause() {
-        playing = false
+        sceneManager.playing = false
     }
 
     function toggle() {
-        if (playing) {
+        if (sceneManager.playing) {
             pause()
         } else {
             play()
@@ -90,13 +89,13 @@ Rectangle {
         id: playbackTimer
         interval: 16
         repeat: true
-        running: root.playing
+        running: sceneManager.playing
         onTriggered: {
             const dt = interval / 1000.0
             const next = sceneManager.animationTime + dt
             if (next >= sceneManager.duration) {
                 sceneManager.animationTime = sceneManager.duration
-                root.playing = false
+                sceneManager.playing = false
             } else {
                 sceneManager.animationTime = next
             }
@@ -107,7 +106,7 @@ Rectangle {
         target: sceneManager
         function onFrameCountChanged() {
             if (sceneManager.frameCount <= 0) {
-                root.playing = false
+                sceneManager.playing = false
             }
         }
     }
@@ -119,14 +118,14 @@ Rectangle {
         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
 
         Button {
-            text: root.playing ? qsTr("Pause") : qsTr("Play")
+            text: sceneManager.playing ? qsTr("Pause") : qsTr("Play")
             enabled: sceneManager.frameCount > 1
             onClicked: root.toggle()
         }
 
         Button {
             text: qsTr("Reset")
-            enabled: !root.playing
+            enabled: !sceneManager.playing
             onClicked: {
                 root.pause()
                 sceneManager.animationTime = 0

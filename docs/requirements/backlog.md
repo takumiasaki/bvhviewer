@@ -38,6 +38,7 @@
 | F03-2 | `[実装済]` | Offset / Appearance / Remove。DnD 配置は [§6 残件](#6-残件未一部未検証) |
 | F04 | `[実装済]` | 併置（自動オフセット）のみ。モード選択は F04-2 `[将来]` |
 | F05 | `[実装済]` | |
+| F05-2 | `[実装済]` | 再生中 Auto 追従。 [camera-controls.md](./camera-controls.md) |
 | F06 | `[実装済]` | 表示/非表示トグルはなし（常時表示） |
 | F08 | `[実装済]` | |
 | F09 | `[実装済]` | |
@@ -89,7 +90,7 @@
 | :--- | :--- |
 | 肉付け | 立方体・円柱等によるスケルトン形状 |
 | F04-2 | シーン構築モード（原点配置 / 併置）の事前選択 |
-| F05-2 | 自動カメラ（俯瞰・注視） |
+| F05-2-1〜5 | カメラ将来拡張（追従モード・スムージング等。 [camera-controls.md](./camera-controls.md) §10） |
 | F07 | マルチビューポート |
 | F10 | 再生速度変更 |
 
@@ -101,6 +102,7 @@
 | :--- | :--- | :--- |
 | [skeleton-colors.md](./skeleton-colors.md) | `[実装済]` | Active Scene 3 タブ |
 | [animation-controls.md](./animation-controls.md) | `[実装済]` | 受け入れ条件チェックリストは §12 |
+| [camera-controls.md](./camera-controls.md) | `[実装済]` | F05-2 |
 
 ---
 

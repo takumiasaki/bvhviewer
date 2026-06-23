@@ -173,6 +173,7 @@ Rectangle {
                 SceneSettingsPanel {
                     width: settingsScroll.availableWidth
                     viewportSettings: sidebar.sceneManager.viewportSettings
+                    cameraSettings: sidebar.sceneManager.cameraSettings
                 }
             }
         }

@@ -123,4 +123,16 @@ ApplicationWindow {
             }
         }
     }
+
+    Shortcut {
+        sequence: "F"
+        context: Qt.ApplicationShortcut
+        onActivated: sceneManager.cameraSettings.requestFrameNow(false)
+    }
+
+    Shortcut {
+        sequence: "Shift+F"
+        context: Qt.ApplicationShortcut
+        onActivated: sceneManager.cameraSettings.requestFrameNow(true)
+    }
 }

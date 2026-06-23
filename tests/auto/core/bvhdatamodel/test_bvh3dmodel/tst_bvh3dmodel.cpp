@@ -9,6 +9,7 @@
 #include "bvhfile.h"
 #include "bvhjointlistmodel.h"
 #include "bvhbonelistmodel.h"
+#include "pose_utils.h"
 
 #ifndef TEST_BVH_DIR
 #define TEST_BVH_DIR "bvhfiles"
@@ -29,6 +30,7 @@ private slots:
     void testListModelRoles();
     void testSetFrameClamps();
     void testSkeletonColors();
+    void testPoseBounds();
 
 private:
     QString m_debugAxesPath;
@@ -235,6 +237,34 @@ void TestBvh3DModel::testSkeletonColors()
     QCOMPARE(model.boneColorMode(), Bvh3DModel::SameAsJoint);
     QCOMPARE(model.jointColor(), jointColor);
     QCOMPARE(model.boneColor(), jointColor);
+}
+
+void TestBvh3DModel::testPoseBounds()
+{
+    Bvh3DModel model(m_bvhFile);
+    model.setFrame(0);
+
+    const PoseUtils::PoseBounds bounds =
+        PoseUtils::computePoseBounds(model.joints(), 2.0f, 1.5f, 1.0f);
+    QVERIFY(bounds.valid);
+    QVERIFY(bounds.min.x() <= bounds.max.x());
+    QVERIFY(bounds.min.y() <= bounds.max.y());
+    QVERIFY(bounds.min.z() <= bounds.max.z());
+
+    const QVector3D center = PoseUtils::boundsCenter(bounds);
+    QVERIFY(qFuzzyCompare(center.x(), (bounds.min.x() + bounds.max.x()) * 0.5f));
+    QVERIFY(qFuzzyCompare(center.y(), (bounds.min.y() + bounds.max.y()) * 0.5f));
+    QVERIFY(qFuzzyCompare(center.z(), (bounds.min.z() + bounds.max.z()) * 0.5f));
+
+    const float distance = PoseUtils::framingDistance(bounds, 45.0f, 16.0f / 9.0f);
+    QVERIFY(distance > 0.0f);
+
+    const float radius = PoseUtils::framingRadius(bounds);
+    QVERIFY(radius > 0.0f);
+
+    PoseUtils::PoseBounds empty;
+    QVERIFY(!PoseUtils::computePoseBounds({}, 2.0f, 1.5f).valid);
+    QVERIFY(!PoseUtils::mergePoseBounds(empty, empty).valid);
 }
 
 QTEST_MAIN(TestBvh3DModel)

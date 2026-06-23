@@ -8,12 +8,207 @@ Item {
     id: root
     property SceneManager sceneManager
     readonly property ViewportSettings viewportSettings: sceneManager ? sceneManager.viewportSettings : null
+    readonly property CameraSettings cameraSettings: sceneManager ? sceneManager.cameraSettings : null
 
     // Built-in #Sphere / #Cylinder meshes are 100 units along each axis.
     readonly property real builtinMeshSize: 100
     readonly property real jointDiameter: 4
     readonly property real endSiteDiameter: 3
     readonly property real boneDiameter: 2
+    readonly property real jointRadius: jointDiameter / 2
+    readonly property real endSiteRadius: endSiteDiameter / 2
+
+    readonly property real defaultOriginX: 0
+    readonly property real defaultOriginY: 200
+    readonly property real defaultOriginZ: 0
+    readonly property real defaultPitch: -20
+    readonly property real defaultDistance: 1300
+    readonly property int frameAnimationDuration: 300
+
+    // Playback follow stabilization (see camera-controls.md §6.3).
+    readonly property real followDeadzoneFactor: 0.06
+    readonly property real followDeadzoneMinimum: 10
+    readonly property real followSmoothingAlpha: 0.15
+    readonly property real followSmoothingAlphaMax: 0.4
+
+    property real followDistance: defaultDistance
+    property bool framingAnimationActive: false
+    property bool pendingFollowDistanceUpdate: false
+
+    readonly property bool autoFollowActive: cameraSettings
+            && cameraSettings.mode === CameraSettings.Auto
+            && sceneManager
+            && sceneManager.playing
+
+    function viewAspectRatio() {
+        return view3d.width > 0 ? view3d.width / view3d.height : 1.0
+    }
+
+    function vectorLength(dx, dy, dz) {
+        return Math.sqrt(dx * dx + dy * dy + dz * dz)
+    }
+
+    function resetCamera() {
+        framingAnimationActive = false
+        originFrameAnimation.stop()
+        distanceFrameAnimation.stop()
+        cameraOrigin.position = Qt.vector3d(defaultOriginX, defaultOriginY, defaultOriginZ)
+        cameraOrigin.eulerRotation = Qt.vector3d(defaultPitch, 0, 0)
+        perspectiveCamera.position = Qt.vector3d(0, 0, defaultDistance)
+        followDistance = defaultDistance
+    }
+
+    function currentFramingDistance() {
+        return sceneManager.framingDistance(
+                    jointRadius,
+                    endSiteRadius,
+                    perspectiveCamera.fieldOfView,
+                    viewAspectRatio(),
+                    defaultPitch)
+    }
+
+    function followTarget() {
+        if (!sceneManager || !sceneManager.hasFramingTarget(jointRadius, endSiteRadius)) {
+            return
+        }
+
+        const target = sceneManager.framingCenter(jointRadius, endSiteRadius)
+        const current = cameraOrigin.position
+        const boundsRadius = sceneManager.framingRadius(jointRadius, endSiteRadius)
+        const deadzone = Math.max(followDeadzoneMinimum, boundsRadius * followDeadzoneFactor)
+
+        const requiredDistance = currentFramingDistance()
+        let distanceGrew = false
+        if (requiredDistance > followDistance) {
+            followDistance = requiredDistance
+            distanceGrew = true
+        }
+
+        const dx = target.x - current.x
+        const dy = target.y - current.y
+        const dz = target.z - current.z
+        const offset = vectorLength(dx, dy, dz)
+        if (!distanceGrew && offset < deadzone) {
+            perspectiveCamera.position = Qt.vector3d(0, 0, followDistance)
+            return
+        }
+
+        const alpha = Math.min(
+                    followSmoothingAlphaMax,
+                    followSmoothingAlpha + offset / Math.max(boundsRadius * 4, 1))
+        cameraOrigin.position = Qt.vector3d(
+                    current.x + dx * alpha,
+                    current.y + dy * alpha,
+                    current.z + dz * alpha)
+        perspectiveCamera.position = Qt.vector3d(0, 0, followDistance)
+    }
+
+    function frameToTarget(animated, instant, updateFollowDistance) {
+        if (!sceneManager || !sceneManager.hasFramingTarget(jointRadius, endSiteRadius)) {
+            return
+        }
+
+        const center = sceneManager.framingCenter(jointRadius, endSiteRadius)
+        const distance = currentFramingDistance()
+
+        if (!animated || instant) {
+            framingAnimationActive = false
+            originFrameAnimation.stop()
+            distanceFrameAnimation.stop()
+            cameraOrigin.position = center
+            perspectiveCamera.position = Qt.vector3d(0, 0, distance)
+            if (updateFollowDistance) {
+                followDistance = distance
+            }
+            return
+        }
+
+        framingAnimationActive = true
+        pendingFollowDistanceUpdate = updateFollowDistance
+        originFrameAnimation.to = center
+        distanceFrameAnimation.to = distance
+        frameAnimationGroup.start()
+        return
+    }
+
+    function startAutoFollow() {
+        frameToTarget(true, false, true)
+    }
+
+    ParallelAnimation {
+        id: frameAnimationGroup
+        running: false
+
+        PropertyAnimation {
+            id: originFrameAnimation
+            target: cameraOrigin
+            property: "position"
+            duration: root.frameAnimationDuration
+            easing.type: Easing.OutCubic
+        }
+
+        PropertyAnimation {
+            id: distanceFrameAnimation
+            target: perspectiveCamera
+            property: "position.z"
+            duration: root.frameAnimationDuration
+            easing.type: Easing.OutCubic
+        }
+
+        onFinished: {
+            root.framingAnimationActive = false
+            if (root.pendingFollowDistanceUpdate) {
+                root.followDistance = perspectiveCamera.position.z
+                root.pendingFollowDistanceUpdate = false
+            }
+        }
+    }
+
+    Connections {
+        target: sceneManager
+        enabled: sceneManager
+
+        function onPlayingChanged() {
+            if (sceneManager.playing
+                    && cameraSettings
+                    && cameraSettings.mode === CameraSettings.Auto) {
+                root.startAutoFollow()
+            }
+        }
+
+        function onFramingTargetChanged() {
+            if (root.autoFollowActive) {
+                root.followTarget()
+            }
+        }
+
+        function onFramingRefitRequested() {
+            if (root.autoFollowActive) {
+                root.frameToTarget(true, false, true)
+            }
+        }
+    }
+
+    Connections {
+        target: cameraSettings
+        enabled: cameraSettings
+
+        function onFrameNowRequested(instant) {
+            root.frameToTarget(true, instant, false)
+        }
+
+        function onResetViewRequested() {
+            root.resetCamera()
+        }
+
+        function onModeChanged() {
+            if (cameraSettings.mode === CameraSettings.Auto
+                    && sceneManager
+                    && sceneManager.playing) {
+                root.startAutoFollow()
+            }
+        }
+    }
 
     View3D {
         id: view3d
@@ -24,12 +219,12 @@ Item {
 
         Node {
             id: cameraOrigin
-            position: Qt.vector3d(0, 200, 0)
-            eulerRotation: Qt.vector3d(-20, 0, 0)
+            position: Qt.vector3d(root.defaultOriginX, root.defaultOriginY, root.defaultOriginZ)
+            eulerRotation: Qt.vector3d(root.defaultPitch, 0, 0)
 
             PerspectiveCamera {
                 id: perspectiveCamera
-                position: Qt.vector3d(0, 0, 1300)
+                position: Qt.vector3d(0, 0, root.defaultDistance)
                 fieldOfView: 45
                 clipNear: 0.1
                 clipFar: 10000
@@ -42,6 +237,7 @@ Item {
             xSpeed: 0.4
             ySpeed: 0.4
             panEnabled: true
+            enabled: !root.framingAnimationActive && !root.autoFollowActive
         }
 
         DirectionalLight {

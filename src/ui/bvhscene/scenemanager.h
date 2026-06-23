@@ -3,12 +3,15 @@
 
 #include <QAbstractListModel>
 #include <QUrl>
+#include <QVector3D>
 #include <memory>
 #include <vector>
 
 #include <QtQml/qqmlregistration.h>
 
 #include "viewportsettings.h"
+#include "camerasettings.h"
+#include "pose_utils.h"
 
 class Bvh3DModel;
 class BvhFile;
@@ -31,6 +34,9 @@ class SceneManager : public QAbstractListModel {
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
     Q_PROPERTY(ViewportSettings* viewportSettings READ viewportSettings CONSTANT)
+    Q_PROPERTY(CameraSettings* cameraSettings READ cameraSettings CONSTANT)
+
+    Q_PROPERTY(bool playing READ playing WRITE setPlaying NOTIFY playingChanged)
 
 public:
     enum SceneRoles {
@@ -70,6 +76,19 @@ public:
     QString lastError() const { return m_lastError; }
 
     ViewportSettings* viewportSettings() const { return m_viewportSettings; }
+    CameraSettings* cameraSettings() const { return m_cameraSettings; }
+
+    bool playing() const { return m_playing; }
+    void setPlaying(bool playing);
+
+    Q_INVOKABLE bool hasFramingTarget(qreal jointRadius, qreal endSiteRadius) const;
+    Q_INVOKABLE QVector3D framingCenter(qreal jointRadius, qreal endSiteRadius) const;
+    Q_INVOKABLE qreal framingRadius(qreal jointRadius, qreal endSiteRadius) const;
+    Q_INVOKABLE qreal framingDistance(qreal jointRadius,
+                                      qreal endSiteRadius,
+                                      qreal fovDegrees,
+                                      qreal aspectRatio,
+                                      qreal pitchDegrees = 0.0) const;
 
     Q_INVOKABLE bool loadScene(const QUrl& fileUrl);
     Q_INVOKABLE bool removeScene(int index);
@@ -87,6 +106,9 @@ signals:
     void frameTimeChanged();
     void durationChanged();
     void lastErrorChanged();
+    void playingChanged();
+    void framingTargetChanged();
+    void framingRefitRequested();
 
 private:
     struct SkeletonEntry {
@@ -106,6 +128,8 @@ private:
     void setLastError(const QString& error);
     void connectSkeletonSignals(BvhSkeletonItem* item);
     void handleSkeletonUpdated();
+    void notifyFramingTargetIfAutoPlaying();
+    PoseUtils::PoseBounds computeFramingBounds(qreal jointRadius, qreal endSiteRadius) const;
     int rowForSkeleton(BvhSkeletonItem* item) const;
     static QColor defaultColorForPaletteIndex(int index);
 
@@ -115,6 +139,8 @@ private:
     int m_currentFrame = -1;
     QString m_lastError;
     ViewportSettings* m_viewportSettings = nullptr;
+    CameraSettings* m_cameraSettings = nullptr;
+    bool m_playing = false;
 };
 
 #endif // SCENEMANAGER_H
